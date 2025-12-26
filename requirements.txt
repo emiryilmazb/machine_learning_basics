@@ -3,5 +3,6 @@ matplotlib
 seaborn
 streamlit
 plotly
+shap
 scikit-learn
 xgboost
