@@ -299,7 +299,11 @@ class HeartDashboard:
         cat_steps = []
         if missing_strategy == "Impute":
             cat_steps.append(("imputer", SimpleImputer(strategy="most_frequent")))
-        cat_steps.append(("onehot", OneHotEncoder(handle_unknown="ignore", sparse=False)))
+        try:
+            onehot = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+        except TypeError:
+            onehot = OneHotEncoder(handle_unknown="ignore", sparse=False)
+        cat_steps.append(("onehot", onehot))
 
         numeric_transformer = Pipeline(steps=num_steps)
         categorical_transformer = Pipeline(steps=cat_steps)
