@@ -33,6 +33,8 @@ except Exception:
 
 
 DATA_PATH = "heart.csv"
+DATASET_SOURCE = "Kaggle - Heart Disease Dataset"
+DATASET_LINK = "https://www.kaggle.com/datasets/johnsmith88/heart-disease-dataset"
 
 
 st.set_page_config(
@@ -145,7 +147,7 @@ class HeartDashboard:
         col3.metric("Features", len(df.columns))
 
         with st.expander("Show Raw Data", expanded=True):
-            st.dataframe(df.head(20), use_container_width=True)
+            st.dataframe(df.head(20), width='stretch')
 
         st.subheader("Dataset Structure")
         buffer = pd.DataFrame({
@@ -153,41 +155,43 @@ class HeartDashboard:
             "Non-Null Count": df.count(),
             "Dtype": df.dtypes.astype(str)
         }).reset_index(drop=True)
-        st.dataframe(buffer, use_container_width=True)
+        st.dataframe(buffer, width='stretch')
 
-        st.subheader("Dataset Description (for report)")
+        st.subheader("Dataset Description")
+        st.markdown(f"[Open Dataset Link]({DATASET_LINK})")
         col_a, col_b = st.columns(2)
         with col_a:
-            st.text_input("Dataset Source", key="dataset_source")
-            st.text_input("Dataset Link", key="dataset_link")
-            st.text_input("Data Type", value="Structured", key="data_type")
+            st.text_input("Dataset Source", value=DATASET_SOURCE, disabled=True)
+            st.text_input("Dataset Link", value=DATASET_LINK, disabled=True)
+            st.text_input("Data Type", value="Structured", disabled=True)
         with col_b:
-            st.text_input("Target Variable", value=target_col, key="target_var")
-            st.text_input("Number of Samples", value=str(len(df)), key="num_samples")
-            st.text_input("Number of Features", value=str(len(df.columns) - 1), key="num_features")
+            st.text_input("Target Variable", value=target_col, disabled=True)
+            st.text_input("Number of Samples", value=str(len(df)), disabled=True)
+            st.text_input("Number of Features", value=str(len(df.columns) - 1), disabled=True)
 
     def show_statistics(self, df, target_col):
         st.header("Statistical Summary")
         st.subheader("Numerical Statistics")
-        st.dataframe(df.describe().T, use_container_width=True)
+        st.dataframe(df.describe().T, width='stretch')
 
         st.subheader("Missing Values")
         missing = df.isna().sum().reset_index()
         missing.columns = ["Column", "Missing Count"]
-        st.dataframe(missing, use_container_width=True)
+        st.dataframe(missing, width='stretch')
 
         if target_col in df.columns:
             st.subheader("Target Distribution")
             target_counts = df[target_col].value_counts().reset_index()
             target_counts.columns = ["Target", "Count"]
             fig = px.pie(target_counts, values="Count", names="Target", hole=0.4)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
     def show_visualizations(self, df, target_col):
         st.header("Interactive Visualizations")
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         numeric_cols = [c for c in numeric_cols if c != target_col]
-        categorical_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
+        _, categorical_cols, low_card = self.detect_columns(df, target_col)
+        categorical_cols = sorted(set(categorical_cols + low_card))
 
         tab1, tab2, tab3 = st.tabs(["Distributions", "Categorical Analysis", "Correlations"])
 
@@ -198,12 +202,12 @@ class HeartDashboard:
                     df, x=numeric_col, color=target_col if target_col in df.columns else None,
                     barmode="overlay", opacity=0.7
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
 
                 fig_box = px.box(
                     df, x=target_col if target_col in df.columns else None, y=numeric_col
                 )
-                st.plotly_chart(fig_box, use_container_width=True)
+                st.plotly_chart(fig_box, width='stretch')
             else:
                 st.info("No numeric columns found for distribution plots.")
 
@@ -212,7 +216,7 @@ class HeartDashboard:
                 cat_col = st.selectbox("Select Categorical Feature", categorical_cols)
                 cat_data = df.groupby([cat_col, target_col]).size().reset_index(name="count")
                 fig = px.bar(cat_data, x=cat_col, y="count", color=target_col, barmode="group")
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             else:
                 st.info("No categorical columns found for categorical analysis.")
 
@@ -222,7 +226,7 @@ class HeartDashboard:
                 fig = px.imshow(
                     corr_matrix, text_auto=".2f", aspect="auto", color_continuous_scale="RdBu_r"
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             else:
                 st.info("No numeric columns found for correlation heatmap.")
 
@@ -266,7 +270,7 @@ class HeartDashboard:
 
         st.markdown("---")
         st.subheader("Processed Data Preview")
-        st.dataframe(df.head(10), use_container_width=True)
+        st.dataframe(df.head(10), width='stretch')
 
     def build_preprocessor(self, df, target_col):
         numeric_cols, categorical_cols, low_card = self.detect_columns(df, target_col)
@@ -371,7 +375,7 @@ class HeartDashboard:
 
     def display_results(self, results, plot_metrics=None):
         results_df = pd.DataFrame(results)
-        st.dataframe(results_df, use_container_width=True)
+        st.dataframe(results_df, width='stretch')
 
         if plot_metrics is not None:
             numeric_cols = [c for c in plot_metrics if c in results_df.columns]
@@ -384,7 +388,7 @@ class HeartDashboard:
         melted = chart_df.melt(id_vars="Model", var_name="Metric", value_name="Score")
         fig = px.bar(melted, x="Model", y="Score", color="Metric", barmode="group", text_auto=".3f")
         fig.update_yaxes(range=[0, 1.05])
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     def download_results(self, results, label, filename):
         if not results:
@@ -515,7 +519,7 @@ class HeartDashboard:
                     st.subheader("Best Model Confusion Matrix")
                     cm = details[summary["best"]]["cm"]
                     fig = px.imshow(cm, text_auto=True, color_continuous_scale="Blues")
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
 
         st.subheader("Ensemble Models (Before Tuning)")
         if st.button("Run Ensemble Models"):
@@ -556,7 +560,7 @@ class HeartDashboard:
                     st.subheader("Best Model Confusion Matrix")
                     cm = details[summary["best"]]["cm"]
                     fig = px.imshow(cm, text_auto=True, color_continuous_scale="Blues")
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
 
         st.subheader("Hyperparameter Tuning (Non-ensemble)")
         non_tuning_method = st.selectbox("Tuning Strategy (Non-ensemble)", ["GridSearchCV", "RandomizedSearchCV"], key="non_tuning_method")
@@ -715,7 +719,7 @@ class HeartDashboard:
                     fi_df = pd.DataFrame({"Feature": feature_names, "Importance": importances})
                     fi_df = fi_df.sort_values(by="Importance", ascending=False).head(20)
                     fig = px.bar(fi_df, x="Importance", y="Feature", orientation="h")
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width='stretch')
                 else:
                     st.info("Selected model does not provide feature_importances_.")
             except Exception as exc:
