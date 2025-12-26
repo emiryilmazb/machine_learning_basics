@@ -248,11 +248,10 @@ class HeartDashboard:
 
         with st.expander("3) Encoding Categorical Features"):
             suggested_categorical = sorted(set(categorical_cols + low_card))
-            selected_cats = st.multiselect(
+            st.multiselect(
                 "Categorical columns", options=df.columns.drop(target_col),
                 default=suggested_categorical, key="categorical_cols"
             )
-            st.session_state["categorical_cols"] = selected_cats
 
         with st.expander("4) Feature Scaling"):
             scale_method = st.selectbox(
