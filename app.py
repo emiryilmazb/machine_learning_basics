@@ -154,7 +154,8 @@ class HeartDashboard:
         if missing_strategy == "Drop Rows":
             cleaned = cleaned.dropna(subset=[target_col]).dropna()
         else:
-            numeric_cols, categorical_cols, low_card = self.detect_columns(cleaned, target_col)
+            numeric_cols, categorical_cols, low_card = self.detect_columns(
+                cleaned, target_col)
             categorical_cols = sorted(set(categorical_cols + low_card))
             for col in numeric_cols:
                 if col == target_col:
@@ -174,14 +175,16 @@ class HeartDashboard:
                     cleaned[col] = cleaned[col].fillna(fill_value)
 
         if outlier_method == "IQR Clip":
-            numeric_cols = cleaned.drop(columns=[target_col]).select_dtypes(include=[np.number]).columns.tolist()
+            numeric_cols = cleaned.drop(columns=[target_col]).select_dtypes(
+                include=[np.number]).columns.tolist()
             if numeric_cols:
                 q1 = cleaned[numeric_cols].quantile(0.25)
                 q3 = cleaned[numeric_cols].quantile(0.75)
                 iqr = q3 - q1
                 lower = q1 - 1.5 * iqr
                 upper = q3 + 1.5 * iqr
-                cleaned[numeric_cols] = cleaned[numeric_cols].clip(lower, upper, axis=1)
+                cleaned[numeric_cols] = cleaned[numeric_cols].clip(
+                    lower, upper, axis=1)
 
         cleaned, _ = self.drop_missing_target_rows(cleaned, target_col)
         return cleaned
@@ -224,7 +227,8 @@ class HeartDashboard:
         if target_col in df.columns:
             fig, ax = plt.subplots(figsize=(6, 4))
             target_counts = df[target_col].value_counts().sort_index()
-            ax.bar(target_counts.index.astype(str), target_counts.values, color="#2a6f97")
+            ax.bar(target_counts.index.astype(str),
+                   target_counts.values, color="#2a6f97")
             ax.set_title("Target Distribution")
             ax.set_xlabel("Class")
             ax.set_ylabel("Count")
@@ -254,14 +258,16 @@ class HeartDashboard:
             return ""
 
         problem_type = self.infer_problem_type(df, target_col)
-        summary_df = df.describe().T.round(4).reset_index().rename(columns={"index": "Feature"})
+        summary_df = df.describe().T.round(
+            4).reset_index().rename(columns={"index": "Feature"})
         missing_df = df.isna().sum().reset_index()
         missing_df.columns = ["Feature", "Missing Count"]
         target_table = ""
         if target_col in df.columns:
             target_counts = df[target_col].value_counts().reset_index()
             target_counts.columns = ["Target", "Count"]
-            target_table = target_counts.to_html(index=False, border=0, classes="table")
+            target_table = target_counts.to_html(
+                index=False, border=0, classes="table")
 
         figures = self.build_eda_figures(df, target_col)
         chart_blocks = []
@@ -343,7 +349,8 @@ h1, h2, h3 {{ color: #1b263b; }}
             pdf.savefig(fig)
             plt.close(fig)
 
-            summary_df = df.describe().T.round(4).reset_index().rename(columns={"index": "Feature"})
+            summary_df = df.describe().T.round(
+                4).reset_index().rename(columns={"index": "Feature"})
             fig, ax = plt.subplots(figsize=(8.27, 11.69))
             ax.axis("off")
             ax.set_title("Summary Statistics", pad=20)
@@ -384,8 +391,10 @@ h1, h2, h3 {{ color: #1b263b; }}
         return buffer.getvalue()
 
     def detect_columns(self, df, target_col):
-        numeric_cols = df.drop(columns=[target_col]).select_dtypes(include=[np.number]).columns.tolist()
-        categorical_cols = df.drop(columns=[target_col]).select_dtypes(exclude=[np.number]).columns.tolist()
+        numeric_cols = df.drop(columns=[target_col]).select_dtypes(
+            include=[np.number]).columns.tolist()
+        categorical_cols = df.drop(columns=[target_col]).select_dtypes(
+            exclude=[np.number]).columns.tolist()
 
         # Treat low-cardinality numeric columns as categorical if user wants
         low_card = []
@@ -404,8 +413,10 @@ h1, h2, h3 {{ color: #1b263b; }}
         if "age" in df.columns:
             min_age = int(df["age"].min())
             max_age = int(df["age"].max())
-            selected_age = st.sidebar.slider("Age Range", min_age, max_age, (min_age, max_age))
-            filtered_df = filtered_df[filtered_df["age"].between(selected_age[0], selected_age[1])]
+            selected_age = st.sidebar.slider(
+                "Age Range", min_age, max_age, (min_age, max_age))
+            filtered_df = filtered_df[filtered_df["age"].between(
+                selected_age[0], selected_age[1])]
 
         if "sex" in df.columns:
             sex_options = sorted(df["sex"].unique())
@@ -450,7 +461,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                 )
             try:
                 processed_df = self.build_processed_view(df, target_col)
-                processed_csv = processed_df.to_csv(index=False).encode("utf-8")
+                processed_csv = processed_df.to_csv(
+                    index=False).encode("utf-8")
                 st.download_button(
                     "Download Processed Dataset (Encoded/Scaled)",
                     processed_csv,
@@ -458,7 +470,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                     "text/csv"
                 )
             except Exception as exc:
-                st.warning(f"Processed dataset could not be built with current settings: {exc}")
+                st.warning(
+                    f"Processed dataset could not be built with current settings: {exc}")
 
         st.subheader("Dataset Structure")
         buffer = pd.DataFrame({
@@ -473,14 +486,17 @@ h1, h2, h3 {{ color: #1b263b; }}
         col_a, col_b = st.columns(2)
         problem_type = self.infer_problem_type(df, target_col)
         with col_a:
-            st.text_input("Dataset Source", value=DATASET_SOURCE, disabled=True)
+            st.text_input("Dataset Source",
+                          value=DATASET_SOURCE, disabled=True)
             st.text_input("Dataset Link", value=DATASET_LINK, disabled=True)
             st.text_input("Data Type", value="Structured", disabled=True)
         with col_b:
             st.text_input("Target Variable", value=target_col, disabled=True)
             st.text_input("Problem Type", value=problem_type, disabled=True)
-            st.text_input("Number of Samples", value=str(len(df)), disabled=True)
-            st.text_input("Number of Features", value=str(len(df.columns) - 1), disabled=True)
+            st.text_input("Number of Samples",
+                          value=str(len(df)), disabled=True)
+            st.text_input("Number of Features", value=str(
+                len(df.columns) - 1), disabled=True)
 
     def show_statistics(self, df, target_col):
         st.header("Statistical Summary")
@@ -492,7 +508,8 @@ h1, h2, h3 {{ color: #1b263b; }}
             eda_df = df
             scope_label = "current filtered view (cleaning unavailable)"
 
-        eda_text = self.build_eda_summary_text(eda_df, target_col, scope_label=scope_label)
+        eda_text = self.build_eda_summary_text(
+            eda_df, target_col, scope_label=scope_label)
         if eda_text:
             st.download_button(
                 "Download EDA Summary (TXT)",
@@ -500,7 +517,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                 "eda_summary.txt",
                 "text/plain"
             )
-        eda_html = self.build_eda_report_html(eda_df, target_col, scope_label=scope_label)
+        eda_html = self.build_eda_report_html(
+            eda_df, target_col, scope_label=scope_label)
         if eda_html:
             st.download_button(
                 "Download EDA Report (HTML)",
@@ -508,7 +526,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                 "eda_report.html",
                 "text/html"
             )
-        eda_pdf = self.build_eda_report_pdf(eda_df, target_col, scope_label=scope_label)
+        eda_pdf = self.build_eda_report_pdf(
+            eda_df, target_col, scope_label=scope_label)
         if eda_pdf:
             st.download_button(
                 "Download EDA Report (PDF)",
@@ -529,7 +548,8 @@ h1, h2, h3 {{ color: #1b263b; }}
             st.subheader("Target Distribution")
             target_counts = eda_df[target_col].value_counts().reset_index()
             target_counts.columns = ["Target", "Count"]
-            fig = px.pie(target_counts, values="Count", names="Target", hole=0.4)
+            fig = px.pie(target_counts, values="Count",
+                         names="Target", hole=0.4)
             st.plotly_chart(fig, width='stretch')
 
     def show_visualizations(self, df, target_col):
@@ -543,16 +563,19 @@ h1, h2, h3 {{ color: #1b263b; }}
             scope_label = "current filtered view (cleaning unavailable)"
         st.caption(f"EDA scope: {scope_label}")
 
-        numeric_cols = eda_df.select_dtypes(include=[np.number]).columns.tolist()
+        numeric_cols = eda_df.select_dtypes(
+            include=[np.number]).columns.tolist()
         numeric_cols = [c for c in numeric_cols if c != target_col]
         _, categorical_cols, low_card = self.detect_columns(eda_df, target_col)
         categorical_cols = sorted(set(categorical_cols + low_card))
 
-        tab1, tab2, tab3 = st.tabs(["Distributions", "Categorical Analysis", "Correlations"])
+        tab1, tab2, tab3 = st.tabs(
+            ["Distributions", "Categorical Analysis", "Correlations"])
 
         with tab1:
             if numeric_cols:
-                numeric_col = st.selectbox("Select Feature for Histogram", numeric_cols)
+                numeric_col = st.selectbox(
+                    "Select Feature for Histogram", numeric_cols)
                 fig = px.histogram(
                     eda_df, x=numeric_col, color=target_col if target_col in eda_df.columns else None,
                     barmode="overlay", opacity=0.7
@@ -568,9 +591,12 @@ h1, h2, h3 {{ color: #1b263b; }}
 
         with tab2:
             if categorical_cols and target_col in eda_df.columns:
-                cat_col = st.selectbox("Select Categorical Feature", categorical_cols)
-                cat_data = eda_df.groupby([cat_col, target_col]).size().reset_index(name="count")
-                fig = px.bar(cat_data, x=cat_col, y="count", color=target_col, barmode="group")
+                cat_col = st.selectbox(
+                    "Select Categorical Feature", categorical_cols)
+                cat_data = eda_df.groupby(
+                    [cat_col, target_col]).size().reset_index(name="count")
+                fig = px.bar(cat_data, x=cat_col, y="count",
+                             color=target_col, barmode="group")
                 st.plotly_chart(fig, width='stretch')
             else:
                 st.info("No categorical columns found for categorical analysis.")
@@ -587,9 +613,11 @@ h1, h2, h3 {{ color: #1b263b; }}
 
     def show_preprocessing(self, df, target_col):
         st.header("Data Pre-processing")
-        st.markdown("Configure preprocessing steps that will be applied inside the ML pipeline.")
+        st.markdown(
+            "Configure preprocessing steps that will be applied inside the ML pipeline.")
 
-        numeric_cols, categorical_cols, low_card = self.detect_columns(df, target_col)
+        numeric_cols, categorical_cols, low_card = self.detect_columns(
+            df, target_col)
 
         with st.expander("1) Missing Values"):
             missing_strategy = st.selectbox(
@@ -603,7 +631,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                 "Outlier method", ["None", "IQR Clip"], key="outlier_method"
             )
             if outlier_method == "IQR Clip":
-                st.info("Outliers are clipped using IQR bounds inside the pipeline (no row removal).")
+                st.info(
+                    "Outliers are clipped using IQR bounds inside the pipeline (no row removal).")
 
         with st.expander("3) Encoding Categorical Features"):
             suggested_categorical = sorted(set(categorical_cols + low_card))
@@ -619,14 +648,16 @@ h1, h2, h3 {{ color: #1b263b; }}
 
         with st.expander("5) Feature Selection"):
             enable_fs = st.checkbox("Enable SelectKBest", key="enable_fs")
-            k_features = st.slider("Number of features to keep", 5, 50, 20, key="k_features")
+            k_features = st.slider(
+                "Number of features to keep", 5, 50, 20, key="k_features")
             if enable_fs:
                 st.info("SelectKBest uses mutual information for classification.")
                 X = df.drop(columns=[target_col])
                 y = df[target_col]
                 X, y, dropped = self.drop_missing_target_xy(X, y)
                 if dropped:
-                    st.info(f"Dropped {dropped} rows with missing target before feature selection.")
+                    st.info(
+                        f"Dropped {dropped} rows with missing target before feature selection.")
                 if st.session_state.get("missing_strategy") == "Drop Rows":
                     mask = X.notna().all(axis=1) & y.notna()
                     X = X[mask]
@@ -635,12 +666,16 @@ h1, h2, h3 {{ color: #1b263b; }}
                     preprocessor = self.build_preprocessor(df, target_col)
                     X_processed = preprocessor.fit_transform(X)
                     feature_names = preprocessor.get_feature_names_out()
-                    selector = SelectKBest(mutual_info_classif, k=min(k_features, len(feature_names)))
+                    selector = SelectKBest(mutual_info_classif, k=min(
+                        k_features, len(feature_names)))
                     selector.fit(X_processed, y)
                     support = selector.get_support()
-                    selected_features = np.array(feature_names)[support].tolist()
-                    st.write(f"Features before selection: {len(feature_names)}")
-                    st.write(f"Features after selection: {len(selected_features)}")
+                    selected_features = np.array(feature_names)[
+                        support].tolist()
+                    st.write(
+                        f"Features before selection: {len(feature_names)}")
+                    st.write(
+                        f"Features after selection: {len(selected_features)}")
                     st.write("Selected features:")
                     st.code(", ".join(selected_features))
                     st.caption(
@@ -648,18 +683,23 @@ h1, h2, h3 {{ color: #1b263b; }}
                         "interpretability, and performance."
                     )
                 except Exception as exc:
-                    st.warning(f"Could not compute selected features with current settings: {exc}")
+                    st.warning(
+                        f"Could not compute selected features with current settings: {exc}")
 
         st.markdown("---")
         st.subheader("Processed Data Preview")
         st.dataframe(df.head(10), width='stretch')
 
     def build_preprocessor(self, df, target_col):
-        numeric_cols, categorical_cols, low_card = self.detect_columns(df, target_col)
-        selected_cats = st.session_state.get("categorical_cols", sorted(set(categorical_cols + low_card)))
+        numeric_cols, categorical_cols, low_card = self.detect_columns(
+            df, target_col)
+        selected_cats = st.session_state.get(
+            "categorical_cols", sorted(set(categorical_cols + low_card)))
 
-        num_cols = [c for c in df.columns if c in numeric_cols and c not in selected_cats and c != target_col]
-        cat_cols = [c for c in df.columns if c in selected_cats and c != target_col]
+        num_cols = [
+            c for c in df.columns if c in numeric_cols and c not in selected_cats and c != target_col]
+        cat_cols = [
+            c for c in df.columns if c in selected_cats and c != target_col]
 
         missing_strategy = st.session_state.get("missing_strategy", "Impute")
         outlier_method = st.session_state.get("outlier_method", "None")
@@ -680,9 +720,11 @@ h1, h2, h3 {{ color: #1b263b; }}
 
         cat_steps = []
         if missing_strategy == "Impute":
-            cat_steps.append(("imputer", SimpleImputer(strategy="most_frequent")))
+            cat_steps.append(
+                ("imputer", SimpleImputer(strategy="most_frequent")))
         try:
-            onehot = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+            onehot = OneHotEncoder(
+                handle_unknown="ignore", sparse_output=False)
         except TypeError:
             onehot = OneHotEncoder(handle_unknown="ignore", sparse=False)
         cat_steps.append(("onehot", onehot))
@@ -796,7 +838,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                     "pr_auc": "average_precision",
                 }
             )
-        scores = cross_validate(pipeline, X, y, cv=cv, scoring=scoring, return_train_score=True)
+        scores = cross_validate(pipeline, X, y, cv=cv,
+                                scoring=scoring, return_train_score=True)
         metrics = {
             "Accuracy": scores["test_accuracy"].mean(),
             "Precision": scores["test_precision"].mean(),
@@ -816,19 +859,23 @@ h1, h2, h3 {{ color: #1b263b; }}
         if plot_metrics is not None:
             numeric_cols = [c for c in plot_metrics if c in results_df.columns]
         else:
-            numeric_cols = results_df.select_dtypes(include=[np.number]).columns.tolist()
+            numeric_cols = results_df.select_dtypes(
+                include=[np.number]).columns.tolist()
         if not numeric_cols:
             return
 
         chart_df = results_df[["Model"] + numeric_cols]
-        melted = chart_df.melt(id_vars="Model", var_name="Metric", value_name="Score")
-        fig = px.bar(melted, x="Model", y="Score", color="Metric", barmode="group", text_auto=".3f")
+        melted = chart_df.melt(
+            id_vars="Model", var_name="Metric", value_name="Score")
+        fig = px.bar(melted, x="Model", y="Score", color="Metric",
+                     barmode="group", text_auto=".3f")
         fig.update_yaxes(range=[0, 1.05])
         st.plotly_chart(fig, width='stretch')
 
     def show_before_after(self, df, target_col):
         st.header("Before and After Comparison")
-        st.markdown("Generate a processed dataset using current preprocessing selections.")
+        st.markdown(
+            "Generate a processed dataset using current preprocessing selections.")
 
         if st.button("Build Processed Dataset"):
             try:
@@ -843,7 +890,8 @@ h1, h2, h3 {{ color: #1b263b; }}
             st.info("Click 'Build Processed Dataset' to create the processed view.")
             return
         csv = processed_df.to_csv(index=False).encode("utf-8")
-        st.download_button("Download Processed Dataset", csv, "processed_dataset.csv", "text/csv")
+        st.download_button("Download Processed Dataset", csv,
+                           "processed_dataset.csv", "text/csv")
 
         col1, col2 = st.columns(2)
         with col1:
@@ -895,16 +943,19 @@ h1, h2, h3 {{ color: #1b263b; }}
         if score_gap < 0.02:
             notes.append("Models perform similarly; metric gap is small.")
         else:
-            notes.append(f"Best vs worst gap is {score_gap:.3f} on {rank_metric}.")
+            notes.append(
+                f"Best vs worst gap is {score_gap:.3f} on {rank_metric}.")
 
         if "Train F1" in best_row and "F1 Score" in best_row:
             gap = best_row["Train F1"] - best_row["F1 Score"]
             if gap > 0.05:
-                notes.append("Best model shows signs of overfitting (train F1 notably higher).")
+                notes.append(
+                    "Best model shows signs of overfitting (train F1 notably higher).")
         if "Train F1" in worst_row and "F1 Score" in worst_row:
             gap = worst_row["Train F1"] - worst_row["F1 Score"]
             if gap < 0.01:
-                notes.append("Worst model may be underfitting (train and test F1 both low).")
+                notes.append(
+                    "Worst model may be underfitting (train and test F1 both low).")
 
         summary = {
             "best": best_row["Model"],
@@ -916,7 +967,8 @@ h1, h2, h3 {{ color: #1b263b; }}
     def _coerce_shap_arrays(self, shap_values, X_values, class_index=1):
         if hasattr(shap_values, "values"):
             values = shap_values.values
-            data = shap_values.data if getattr(shap_values, "data", None) is not None else X_values
+            data = shap_values.data if getattr(
+                shap_values, "data", None) is not None else X_values
             values = np.array(values)
             if values.ndim == 3:
                 idx = min(class_index, values.shape[-1] - 1)
@@ -932,7 +984,8 @@ h1, h2, h3 {{ color: #1b263b; }}
         return values, np.array(X_values)
 
     def build_shap_summary_plotly(self, shap_values, X_values, feature_names, max_display=20, class_index=1):
-        values, data = self._coerce_shap_arrays(shap_values, X_values, class_index=class_index)
+        values, data = self._coerce_shap_arrays(
+            shap_values, X_values, class_index=class_index)
         shap_df = pd.DataFrame(values, columns=feature_names)
         data_df = pd.DataFrame(data, columns=feature_names)
 
@@ -958,7 +1011,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                         color=feat_vals,
                         colorscale="RdBu",
                         showscale=(i == 0),
-                        colorbar=dict(title="Feature value") if i == 0 else None,
+                        colorbar=dict(
+                            title="Feature value") if i == 0 else None,
                     ),
                     hovertemplate=(
                         f"{feat}<br>SHAP=%{{x:.4f}}<br>Value=%{{marker.color:.4f}}<extra></extra>"
@@ -999,7 +1053,8 @@ h1, h2, h3 {{ color: #1b263b; }}
         model = model_pipeline.named_steps["model"]
         if hasattr(model, "feature_importances_"):
             importances = model.feature_importances_
-            fi_df = pd.DataFrame({"Feature": feature_names, "Importance": importances})
+            fi_df = pd.DataFrame(
+                {"Feature": feature_names, "Importance": importances})
         else:
             X = df.drop(columns=[target_col])
             y = df[target_col]
@@ -1026,15 +1081,15 @@ h1, h2, h3 {{ color: #1b263b; }}
         st.subheader("Model Descriptions")
         st.markdown(
             """
-**Dummy (Most Frequent)**: Baseline classifier that predicts the most common class; useful to set a minimum bar.
-**Logistic Regression**: Linear model with a sigmoid function; fast, interpretable, and a strong baseline for binary tasks.
-**SVM (RBF)**: Finds a maximum-margin decision boundary with non-linear kernels; strong for complex boundaries but can be slower.
-**KNN**: Classifies based on nearest neighbors; simple and flexible but sensitive to scaling and noise.
-**Decision Tree**: Rule-based splits for interpretability; can overfit without constraints.
-**Random Forest**: Bagged ensemble of trees to reduce variance; robust and handles non-linearities well.
-**Gradient Boosting**: Sequentially builds trees to correct errors; often high accuracy but sensitive to tuning.
-**AdaBoost**: Boosts weak learners with reweighting; can perform well on clean data but sensitive to noise.
-**XGBoost**: Optimized gradient boosting; strong performance with regularization and efficient training.
+**Dummy (Most Frequent)**: Baseline classifier that predicts the most common class; useful to set a minimum bar.\n
+**Logistic Regression**: Linear model with a sigmoid function; fast, interpretable, and a strong baseline for binary tasks.\n
+**SVM (RBF)**: Finds a maximum-margin decision boundary with non-linear kernels; strong for complex boundaries but can be slower.\n
+**KNN**: Classifies based on nearest neighbors; simple and flexible but sensitive to scaling and noise.\n
+**Decision Tree**: Rule-based splits for interpretability; can overfit without constraints.\n
+**Random Forest**: Bagged ensemble of trees to reduce variance; robust and handles non-linearities well.\n
+**Gradient Boosting**: Sequentially builds trees to correct errors; often high accuracy but sensitive to tuning.\n
+**AdaBoost**: Boosts weak learners with reweighting; can perform well on clean data but sensitive to noise.\n
+**XGBoost**: Optimized gradient boosting; strong performance with regularization and efficient training.\n
 """
         )
 
@@ -1042,7 +1097,8 @@ h1, h2, h3 {{ color: #1b263b; }}
         y = df[target_col]
         X, y, dropped = self.drop_missing_target_xy(X, y)
         if dropped:
-            st.warning(f"Dropped {dropped} rows with missing target before modeling.")
+            st.warning(
+                f"Dropped {dropped} rows with missing target before modeling.")
 
         missing_strategy = st.session_state.get("missing_strategy", "Impute")
         if missing_strategy == "Drop Rows":
@@ -1062,7 +1118,8 @@ h1, h2, h3 {{ color: #1b263b; }}
             index=0,
             key="rank_metric"
         )
-        handle_imbalance = st.checkbox("Handle class imbalance (class_weight=balanced)", value=False, key="class_weight")
+        handle_imbalance = st.checkbox(
+            "Handle class imbalance (class_weight=balanced)", value=False, key="class_weight")
         scoring_metric = st.session_state.get("scoring_metric", "f1")
         non_scoring_metric = st.session_state.get("non_scoring_metric", "f1")
         st.info(
@@ -1072,7 +1129,8 @@ h1, h2, h3 {{ color: #1b263b; }}
             f"Scoring (tuning)={non_scoring_metric} / {scoring_metric}"
         )
         if run_holdout:
-            st.caption("Holdout diagnostics use an 80/20 stratified split for confusion matrix only.")
+            st.caption(
+                "Holdout diagnostics use an 80/20 stratified split for confusion matrix only.")
 
         class_weight = "balanced" if handle_imbalance else None
         if handle_imbalance and y.nunique() == 2:
@@ -1103,14 +1161,16 @@ h1, h2, h3 {{ color: #1b263b; }}
         st.subheader("Non-ensemble Models")
         if st.button("Run Non-ensemble Models"):
             results = []
-            cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
+            cv = StratifiedKFold(
+                n_splits=cv_folds, shuffle=True, random_state=42)
             for name, model in non_ensemble_models.items():
                 pipeline = self.build_pipeline(model, df, target_col)
                 metrics = self.evaluate_cv(pipeline, X, y, cv)
                 metrics["Model"] = name
                 results.append(metrics)
 
-            self.display_results(results, plot_metrics=["Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
+            self.display_results(results, plot_metrics=[
+                                 "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
             st.session_state["non_ensemble_results"] = results
 
             summary = self.summarize_results(results, rank_metric)
@@ -1127,22 +1187,27 @@ h1, h2, h3 {{ color: #1b263b; }}
                     X_train, X_test, y_train, y_test = train_test_split(
                         X, y, test_size=0.2, random_state=42, stratify=y
                     )
-                    pipeline = self.build_pipeline(non_ensemble_models[summary["best"]], df, target_col)
-                    _, _, _, cm = self.evaluate_train_test(pipeline, X_train, X_test, y_train, y_test)
-                    fig = px.imshow(cm, text_auto=True, color_continuous_scale="Blues")
+                    pipeline = self.build_pipeline(
+                        non_ensemble_models[summary["best"]], df, target_col)
+                    _, _, _, cm = self.evaluate_train_test(
+                        pipeline, X_train, X_test, y_train, y_test)
+                    fig = px.imshow(cm, text_auto=True,
+                                    color_continuous_scale="Blues")
                     st.plotly_chart(fig, width='stretch')
 
         st.subheader("Ensemble Models (Before Tuning)")
         if st.button("Run Ensemble Models"):
             results = []
-            cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
+            cv = StratifiedKFold(
+                n_splits=cv_folds, shuffle=True, random_state=42)
             for name, model in ensemble_models.items():
                 pipeline = self.build_pipeline(model, df, target_col)
                 metrics = self.evaluate_cv(pipeline, X, y, cv)
                 metrics["Model"] = name
                 results.append(metrics)
 
-            self.display_results(results, plot_metrics=["Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
+            self.display_results(results, plot_metrics=[
+                                 "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
             st.session_state["ensemble_results"] = results
 
             summary = self.summarize_results(results, rank_metric)
@@ -1159,19 +1224,25 @@ h1, h2, h3 {{ color: #1b263b; }}
                     X_train, X_test, y_train, y_test = train_test_split(
                         X, y, test_size=0.2, random_state=42, stratify=y
                     )
-                    pipeline = self.build_pipeline(ensemble_models[summary["best"]], df, target_col)
-                    _, _, _, cm = self.evaluate_train_test(pipeline, X_train, X_test, y_train, y_test)
-                    fig = px.imshow(cm, text_auto=True, color_continuous_scale="Blues")
+                    pipeline = self.build_pipeline(
+                        ensemble_models[summary["best"]], df, target_col)
+                    _, _, _, cm = self.evaluate_train_test(
+                        pipeline, X_train, X_test, y_train, y_test)
+                    fig = px.imshow(cm, text_auto=True,
+                                    color_continuous_scale="Blues")
                     st.plotly_chart(fig, width='stretch')
 
         st.subheader("Hyperparameter Tuning (Non-ensemble)")
-        non_tuning_method = st.selectbox("Tuning Strategy (Non-ensemble)", ["GridSearchCV", "RandomizedSearchCV"], key="non_tuning_method")
-        non_scoring_metric = st.selectbox("Scoring Metric (Non-ensemble)", ["f1", "roc_auc", "accuracy"], key="non_scoring_metric")
+        non_tuning_method = st.selectbox(
+            "Tuning Strategy (Non-ensemble)", ["GridSearchCV", "RandomizedSearchCV"], key="non_tuning_method")
+        non_scoring_metric = st.selectbox(
+            "Scoring Metric (Non-ensemble)", ["f1", "roc_auc", "accuracy"], key="non_scoring_metric")
 
         if st.button("Run Non-ensemble Tuning"):
             results = []
             tuned_models = {}
-            cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
+            cv = StratifiedKFold(
+                n_splits=cv_folds, shuffle=True, random_state=42)
 
             param_grids = {
                 "Logistic Regression": {
@@ -1199,7 +1270,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                 pipeline = self.build_pipeline(model, df, target_col)
                 params = param_grids.get(name, {})
                 if non_tuning_method == "GridSearchCV":
-                    search = GridSearchCV(pipeline, params, cv=cv, scoring=non_scoring_metric, n_jobs=-1)
+                    search = GridSearchCV(
+                        pipeline, params, cv=cv, scoring=non_scoring_metric, n_jobs=-1)
                 else:
                     search = RandomizedSearchCV(
                         pipeline, params, cv=cv, scoring=non_scoring_metric, n_jobs=-1, n_iter=10, random_state=42
@@ -1213,7 +1285,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                 metrics["Best Params"] = str(search.best_params_)
                 results.append(metrics)
 
-            self.display_results(results, plot_metrics=["Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
+            self.display_results(results, plot_metrics=[
+                                 "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
             st.session_state["tuned_non_ensemble_results"] = results
             st.session_state["tuned_non_ensemble_models"] = tuned_models
             summary = self.summarize_results(results, rank_metric)
@@ -1226,13 +1299,16 @@ h1, h2, h3 {{ color: #1b263b; }}
                 )
 
         st.subheader("Hyperparameter Tuning (Ensemble Models)")
-        tuning_method = st.selectbox("Tuning Strategy", ["GridSearchCV", "RandomizedSearchCV"], key="tuning_method")
-        scoring_metric = st.selectbox("Scoring Metric", ["f1", "roc_auc", "accuracy"], key="scoring_metric")
+        tuning_method = st.selectbox(
+            "Tuning Strategy", ["GridSearchCV", "RandomizedSearchCV"], key="tuning_method")
+        scoring_metric = st.selectbox(
+            "Scoring Metric", ["f1", "roc_auc", "accuracy"], key="scoring_metric")
 
         if st.button("Run Hyperparameter Tuning"):
             results = []
             tuned_models = {}
-            cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
+            cv = StratifiedKFold(
+                n_splits=cv_folds, shuffle=True, random_state=42)
 
             param_grids = {
                 "Random Forest": {
@@ -1263,7 +1339,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                 pipeline = self.build_pipeline(model, df, target_col)
                 params = param_grids.get(name, {})
                 if tuning_method == "GridSearchCV":
-                    search = GridSearchCV(pipeline, params, cv=cv, scoring=scoring_metric, n_jobs=-1)
+                    search = GridSearchCV(
+                        pipeline, params, cv=cv, scoring=scoring_metric, n_jobs=-1)
                 else:
                     search = RandomizedSearchCV(
                         pipeline, params, cv=cv, scoring=scoring_metric, n_jobs=-1, n_iter=10, random_state=42
@@ -1277,7 +1354,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                 metrics["Best Params"] = str(search.best_params_)
                 results.append(metrics)
 
-            self.display_results(results, plot_metrics=["Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
+            self.display_results(results, plot_metrics=[
+                                 "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
             st.session_state["tuned_ensemble_results"] = results
             st.session_state["tuned_models"] = tuned_models
 
@@ -1295,11 +1373,13 @@ h1, h2, h3 {{ color: #1b263b; }}
             combined = []
             combined.extend(st.session_state.get("non_ensemble_results", []))
             combined.extend(st.session_state.get("ensemble_results", []))
-            combined.extend(st.session_state.get("tuned_non_ensemble_results", []))
+            combined.extend(st.session_state.get(
+                "tuned_non_ensemble_results", []))
             combined.extend(st.session_state.get("tuned_ensemble_results", []))
 
             if combined:
-                self.display_results(combined, plot_metrics=["Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
+                self.display_results(combined, plot_metrics=[
+                                     "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
                 summary = self.summarize_results(combined, rank_metric)
                 if summary:
                     st.subheader("Auto Discussion (Overall)")
@@ -1309,7 +1389,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                         + "\n".join([f"- {n}" for n in summary["notes"]])
                     )
             else:
-                st.info("Run at least one modeling step first to build overall comparison.")
+                st.info(
+                    "Run at least one modeling step first to build overall comparison.")
 
         st.subheader("Before vs After Tuning Comparison")
         compare_metric = st.selectbox(
@@ -1322,8 +1403,10 @@ h1, h2, h3 {{ color: #1b263b; }}
         def build_comparison(before, after, metric):
             if not before or not after:
                 return None
-            before_df = pd.DataFrame(before)[["Model", metric]].rename(columns={metric: "Before"})
-            after_df = pd.DataFrame(after)[["Model", metric]].rename(columns={metric: "After"})
+            before_df = pd.DataFrame(before)[["Model", metric]].rename(
+                columns={metric: "Before"})
+            after_df = pd.DataFrame(after)[["Model", metric]].rename(
+                columns={metric: "After"})
             merged = before_df.merge(after_df, on="Model", how="inner")
             merged["Improvement"] = merged["After"] - merged["Before"]
             return merged.sort_values(by="Improvement", ascending=False)
@@ -1351,7 +1434,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                 st.info("Run ensemble models and tuning first.")
 
         st.subheader("Before vs After Tuning Tables")
-        metric_cols = ["Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"]
+        metric_cols = ["Accuracy", "Precision",
+                       "Recall", "F1 Score", "AUC", "PR AUC"]
 
         def build_before_after_table(before, after):
             if not before or not after:
@@ -1374,7 +1458,8 @@ h1, h2, h3 {{ color: #1b263b; }}
             st.markdown("**Non-ensemble Models**")
             st.dataframe(non_table, width='stretch')
         else:
-            st.info("Run non-ensemble models and tuning to build the before/after table.")
+            st.info(
+                "Run non-ensemble models and tuning to build the before/after table.")
 
         ens_table = build_before_after_table(
             st.session_state.get("ensemble_results", []),
@@ -1410,10 +1495,12 @@ h1, h2, h3 {{ color: #1b263b; }}
                             fi_df = self.compute_feature_importance(
                                 model_pipeline, df, target_col, top_n=top_n
                             )
-                            fig = px.bar(fi_df, x="Importance", y="Feature", orientation="h")
+                            fig = px.bar(fi_df, x="Importance",
+                                         y="Feature", orientation="h")
                             st.plotly_chart(fig, width='stretch')
                         except Exception as exc:
-                            st.warning(f"Feature importance could not be computed: {exc}")
+                            st.warning(
+                                f"Feature importance could not be computed: {exc}")
         else:
             st.info("Run hyperparameter tuning to see feature importances.")
 
@@ -1422,19 +1509,23 @@ h1, h2, h3 {{ color: #1b263b; }}
             st.info("SHAP is not available in this environment.")
         else:
             if tuned_models:
-                shap_model_name = st.selectbox("Select Model for SHAP", list(tuned_models.keys()), key="shap_model")
+                shap_model_name = st.selectbox("Select Model for SHAP", list(
+                    tuned_models.keys()), key="shap_model")
                 col_a, col_b = st.columns(2)
                 with col_a:
                     max_sample = min(1000, len(X))
                     min_sample = min(50, max_sample)
                     default_sample = min(200, max_sample)
                     step_size = 10 if max_sample < 100 else 50
-                    sample_size = st.slider("SHAP sample size", min_sample, max_sample, default_sample, step=step_size)
+                    sample_size = st.slider(
+                        "SHAP sample size", min_sample, max_sample, default_sample, step=step_size)
                 with col_b:
-                    max_display = st.slider("Max features to display", 5, 30, 20)
+                    max_display = st.slider(
+                        "Max features to display", 5, 30, 20)
                 if st.button("Run SHAP Summary"):
                     model_pipeline = tuned_models[shap_model_name]
-                    X_sample = X.sample(min(sample_size, len(X)), random_state=42)
+                    X_sample = X.sample(
+                        min(sample_size, len(X)), random_state=42)
                     with st.spinner("Computing SHAP values..."):
                         model_pipeline.fit(X, y)
                         model = model_pipeline.named_steps["model"]
@@ -1450,17 +1541,20 @@ h1, h2, h3 {{ color: #1b263b; }}
 
                         if hasattr(model, "predict_proba"):
                             try:
-                                explainer = shap.Explainer(model, X_transformed, feature_names=feature_names)
+                                explainer = shap.Explainer(
+                                    model, X_transformed, feature_names=feature_names)
                                 shap_values = explainer(X_transformed)
                             except Exception:
                                 try:
                                     explainer = shap.TreeExplainer(model)
-                                    shap_values = explainer.shap_values(X_transformed)
+                                    shap_values = explainer.shap_values(
+                                        X_transformed)
                                 except Exception as exc:
                                     st.warning(f"SHAP failed: {exc}")
                                     shap_values = None
                         else:
-                            st.info("Selected model does not support SHAP with current setup.")
+                            st.info(
+                                "Selected model does not support SHAP with current setup.")
                             shap_values = None
 
                     if shap_values is not None:
@@ -1471,7 +1565,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                             max_display=max_display,
                             class_index=1
                         )
-                        tab_a, tab_b = st.tabs(["Beeswarm (Interactive)", "Bar (Mean |SHAP|)"])
+                        tab_a, tab_b = st.tabs(
+                            ["Beeswarm (Interactive)", "Bar (Mean |SHAP|)"])
                         with tab_a:
                             st.plotly_chart(beeswarm_fig, width='stretch')
                         with tab_b:
@@ -1510,14 +1605,19 @@ beeswarm_fig, bar_fig = dashboard.build_shap_summary_plotly(
                 )
 
         st.subheader("Results Export")
-        self.download_results(st.session_state.get("non_ensemble_results"), "Download Non-ensemble Results", "non_ensemble_results.csv")
-        self.download_results(st.session_state.get("ensemble_results"), "Download Ensemble Results", "ensemble_results.csv")
-        self.download_results(st.session_state.get("tuned_non_ensemble_results"), "Download Tuned Non-ensemble Results", "tuned_non_ensemble_results.csv")
-        self.download_results(st.session_state.get("tuned_ensemble_results"), "Download Tuned Ensemble Results", "tuned_ensemble_results.csv")
+        self.download_results(st.session_state.get(
+            "non_ensemble_results"), "Download Non-ensemble Results", "non_ensemble_results.csv")
+        self.download_results(st.session_state.get(
+            "ensemble_results"), "Download Ensemble Results", "ensemble_results.csv")
+        self.download_results(st.session_state.get("tuned_non_ensemble_results"),
+                              "Download Tuned Non-ensemble Results", "tuned_non_ensemble_results.csv")
+        self.download_results(st.session_state.get("tuned_ensemble_results"),
+                              "Download Tuned Ensemble Results", "tuned_ensemble_results.csv")
 
     def run(self):
         st.title("Heart Disease Analysis Dashboard")
-        st.markdown("End-to-end EDA, preprocessing, modeling, and comparison pipeline.")
+        st.markdown(
+            "End-to-end EDA, preprocessing, modeling, and comparison pipeline.")
         with st.expander("Project Information", expanded=False):
             st.markdown(
                 """
@@ -1547,7 +1647,8 @@ Early risk prediction supports decision-making and can guide follow-up testing.
 
         df, removed_rows = self.basic_clean(raw_df)
 
-        target_col = st.sidebar.selectbox("Target Column", options=df.columns, index=df.columns.get_loc("target") if "target" in df.columns else 0)
+        target_col = st.sidebar.selectbox("Target Column", options=df.columns, index=df.columns.get_loc(
+            "target") if "target" in df.columns else 0)
 
         filtered_df = self.sidebar_filters(df)
         if filtered_df is None:
@@ -1556,44 +1657,47 @@ Early risk prediction supports decision-making and can guide follow-up testing.
         if "processed_df" not in st.session_state:
             st.session_state["processed_df"] = filtered_df
 
-        tabs = st.tabs([
+        tab_labels = [
             "Data Overview",
             "Statistics",
             "Visualizations",
             "Pre-processing",
             "Before/After",
             "Modeling",
-            "Ethics",
-        ])
+        ]
+        if "active_tab" not in st.session_state:
+            st.session_state["active_tab"] = tab_labels[0]
 
-        with tabs[0]:
-            self.show_data_overview(filtered_df, len(raw_df), removed_rows, target_col)
-
-        with tabs[1]:
-            self.show_statistics(filtered_df, target_col)
-
-        with tabs[2]:
-            self.show_visualizations(filtered_df, target_col)
-
-        with tabs[3]:
-            self.show_preprocessing(filtered_df, target_col)
-
-        with tabs[4]:
-            self.show_before_after(filtered_df, target_col)
-
-        with tabs[5]:
-            self.train_models_section(filtered_df, target_col)
-
-        with tabs[6]:
-            st.header("Ethical & Privacy Considerations")
-            st.markdown(
-                """
-- **Privacy**: Use de-identified data and avoid exposing personal identifiers.
-- **Bias**: Evaluate performance across subgroups to detect disparities.
-- **Usage**: Predictions are decision-support only, not a clinical diagnosis.
-- **Transparency**: Document preprocessing choices and limitations clearly.
-"""
+        # Use a stateful selector to avoid the initial st.tabs reset on first rerun.
+        if hasattr(st, "segmented_control"):
+            active_tab = st.segmented_control(
+                "Navigation",
+                tab_labels,
+                key="active_tab",
+                label_visibility="collapsed",
             )
+        else:
+            active_tab = st.radio(
+                "Navigation",
+                tab_labels,
+                horizontal=True,
+                key="active_tab",
+                label_visibility="collapsed",
+            )
+
+        if active_tab == "Data Overview":
+            self.show_data_overview(filtered_df, len(
+                raw_df), removed_rows, target_col)
+        elif active_tab == "Statistics":
+            self.show_statistics(filtered_df, target_col)
+        elif active_tab == "Visualizations":
+            self.show_visualizations(filtered_df, target_col)
+        elif active_tab == "Pre-processing":
+            self.show_preprocessing(filtered_df, target_col)
+        elif active_tab == "Before/After":
+            self.show_before_after(filtered_df, target_col)
+        elif active_tab == "Modeling":
+            self.train_models_section(filtered_df, target_col)
 
 
 if __name__ == "__main__":
