@@ -1662,10 +1662,9 @@ Early risk prediction supports decision-making and can guide follow-up testing.
             "Statistics",
             "Visualizations",
             "Pre-processing",
-            "Before/After",
             "Modeling",
         ]
-        if "active_tab" not in st.session_state:
+        if "active_tab" not in st.session_state or st.session_state["active_tab"] not in tab_labels:
             st.session_state["active_tab"] = tab_labels[0]
 
         # Use a stateful selector to avoid the initial st.tabs reset on first rerun.
@@ -1694,7 +1693,7 @@ Early risk prediction supports decision-making and can guide follow-up testing.
             self.show_visualizations(filtered_df, target_col)
         elif active_tab == "Pre-processing":
             self.show_preprocessing(filtered_df, target_col)
-        elif active_tab == "Before/After":
+            st.markdown("---")
             self.show_before_after(filtered_df, target_col)
         elif active_tab == "Modeling":
             self.train_models_section(filtered_df, target_col)
