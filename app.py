@@ -3,20 +3,27 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+import io
+import base64
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib.backends.backend_pdf import PdfPages
 
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler, MinMaxScaler
+from sklearn.preprocessing import OneHotEncoder, StandardScaler, MinMaxScaler, label_binarize
 from sklearn.feature_selection import SelectKBest, mutual_info_classif
+from sklearn.inspection import permutation_importance
 from sklearn.model_selection import train_test_split, StratifiedKFold, cross_validate, GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import accuracy_score, recall_score, f1_score, precision_score, roc_auc_score, confusion_matrix, average_precision_score
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
 from sklearn.dummy import DummyClassifier
 
 try:
@@ -60,9 +67,15 @@ class IQRClipper(BaseEstimator, TransformerMixin):
         self.factor = factor
         self.lower_bounds_ = None
         self.upper_bounds_ = None
+        self.feature_names_in_ = None
 
     def fit(self, X, y=None):
-        X_df = pd.DataFrame(X)
+        if isinstance(X, pd.DataFrame):
+            self.feature_names_in_ = X.columns.to_numpy()
+            X_df = X
+        else:
+            self.feature_names_in_ = None
+            X_df = pd.DataFrame(X)
         q1 = X_df.quantile(0.25)
         q3 = X_df.quantile(0.75)
         iqr = q3 - q1
@@ -74,6 +87,13 @@ class IQRClipper(BaseEstimator, TransformerMixin):
         X_df = pd.DataFrame(X)
         X_clipped = X_df.clip(self.lower_bounds_, self.upper_bounds_, axis=1)
         return X_clipped.values
+
+    def get_feature_names_out(self, input_features=None):
+        if input_features is not None:
+            return np.asarray(input_features, dtype=object)
+        if self.feature_names_in_ is not None:
+            return np.asarray(self.feature_names_in_, dtype=object)
+        return np.asarray([f"x{i}" for i in range(len(self.lower_bounds_))], dtype=object)
 
 
 class HeartDashboard:
@@ -95,6 +115,273 @@ class HeartDashboard:
         df = df.drop_duplicates()
         removed = initial_rows - len(df)
         return df, removed
+
+    def drop_missing_target_rows(self, df, target_col):
+        if df is None or target_col not in df.columns:
+            return df, 0
+        missing_mask = df[target_col].isna()
+        dropped = int(missing_mask.sum())
+        if dropped:
+            df = df.loc[~missing_mask].copy()
+        return df, dropped
+
+    def drop_missing_target_xy(self, X, y):
+        missing_mask = y.isna()
+        dropped = int(missing_mask.sum())
+        if dropped:
+            X = X.loc[~missing_mask]
+            y = y.loc[~missing_mask]
+        return X, y, dropped
+
+    def infer_problem_type(self, df, target_col):
+        if df is None or target_col not in df.columns:
+            return "Unknown"
+        target = df[target_col]
+        unique_count = target.dropna().nunique()
+        if target.dtype.kind in "ifu":
+            if unique_count <= 10:
+                return "Classification"
+            return "Regression"
+        return "Classification"
+
+    def build_cleaned_dataset(self, df, target_col):
+        if df is None:
+            return None
+        cleaned = df.copy()
+        missing_strategy = st.session_state.get("missing_strategy", "Impute")
+        outlier_method = st.session_state.get("outlier_method", "None")
+
+        if missing_strategy == "Drop Rows":
+            cleaned = cleaned.dropna(subset=[target_col]).dropna()
+        else:
+            numeric_cols, categorical_cols, low_card = self.detect_columns(cleaned, target_col)
+            categorical_cols = sorted(set(categorical_cols + low_card))
+            for col in numeric_cols:
+                if col == target_col:
+                    continue
+                median_value = cleaned[col].median()
+                if np.isnan(median_value):
+                    median_value = 0.0
+                cleaned[col] = cleaned[col].fillna(median_value)
+            for col in categorical_cols:
+                if col == target_col:
+                    continue
+                if cleaned[col].isna().all():
+                    cleaned[col] = cleaned[col].fillna("Unknown")
+                else:
+                    most_common = cleaned[col].mode(dropna=True)
+                    fill_value = most_common.iloc[0] if not most_common.empty else "Unknown"
+                    cleaned[col] = cleaned[col].fillna(fill_value)
+
+        if outlier_method == "IQR Clip":
+            numeric_cols = cleaned.drop(columns=[target_col]).select_dtypes(include=[np.number]).columns.tolist()
+            if numeric_cols:
+                q1 = cleaned[numeric_cols].quantile(0.25)
+                q3 = cleaned[numeric_cols].quantile(0.75)
+                iqr = q3 - q1
+                lower = q1 - 1.5 * iqr
+                upper = q3 + 1.5 * iqr
+                cleaned[numeric_cols] = cleaned[numeric_cols].clip(lower, upper, axis=1)
+
+        cleaned, _ = self.drop_missing_target_rows(cleaned, target_col)
+        return cleaned
+
+    def build_eda_summary_text(self, df, target_col, scope_label="current filtered view"):
+        if df is None:
+            return ""
+        lines = []
+        lines.append("EDA SUMMARY")
+        lines.append(f"Dataset Source: {DATASET_SOURCE}")
+        lines.append(f"Dataset Link: {DATASET_LINK}")
+        lines.append(f"Report scope: {scope_label}")
+        lines.append(f"Rows: {len(df)}")
+        lines.append(f"Features: {len(df.columns) - 1}")
+        lines.append("")
+        lines.append("Missing Values:")
+        missing = df.isna().sum()
+        lines.append(missing.to_string())
+        lines.append("")
+        lines.append("Numerical Summary:")
+        lines.append(df.describe().T.to_string())
+        lines.append("")
+        if target_col in df.columns:
+            lines.append("Target Distribution:")
+            lines.append(df[target_col].value_counts().to_string())
+        return "\n".join(lines)
+
+    def _render_matplotlib_png(self, fig):
+        buffer = io.BytesIO()
+        fig.savefig(buffer, format="png", dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    def build_eda_figures(self, df, target_col):
+        figures = []
+        if df is None:
+            return figures
+
+        if target_col in df.columns:
+            fig, ax = plt.subplots(figsize=(6, 4))
+            target_counts = df[target_col].value_counts().sort_index()
+            ax.bar(target_counts.index.astype(str), target_counts.values, color="#2a6f97")
+            ax.set_title("Target Distribution")
+            ax.set_xlabel("Class")
+            ax.set_ylabel("Count")
+            figures.append(("Target Distribution", fig))
+
+        missing = df.isna().sum()
+        fig, ax = plt.subplots(figsize=(7, 4))
+        ax.bar(missing.index.astype(str), missing.values, color="#9b2226")
+        ax.set_title("Missing Values per Feature")
+        ax.set_xlabel("Feature")
+        ax.set_ylabel("Missing Count")
+        ax.tick_params(axis="x", rotation=45, labelsize=8)
+        figures.append(("Missing Values", fig))
+
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        if numeric_cols:
+            corr_df = df[numeric_cols].corr()
+            fig, ax = plt.subplots(figsize=(7, 6))
+            sns.heatmap(corr_df, cmap="coolwarm", center=0, ax=ax)
+            ax.set_title("Correlation Heatmap")
+            figures.append(("Correlation Heatmap", fig))
+
+        return figures
+
+    def build_eda_report_html(self, df, target_col, scope_label="current filtered view"):
+        if df is None:
+            return ""
+
+        problem_type = self.infer_problem_type(df, target_col)
+        summary_df = df.describe().T.round(4).reset_index().rename(columns={"index": "Feature"})
+        missing_df = df.isna().sum().reset_index()
+        missing_df.columns = ["Feature", "Missing Count"]
+        target_table = ""
+        if target_col in df.columns:
+            target_counts = df[target_col].value_counts().reset_index()
+            target_counts.columns = ["Target", "Count"]
+            target_table = target_counts.to_html(index=False, border=0, classes="table")
+
+        figures = self.build_eda_figures(df, target_col)
+        chart_blocks = []
+        for title, fig in figures:
+            img_bytes = self._render_matplotlib_png(fig)
+            img_b64 = base64.b64encode(img_bytes).decode("ascii")
+            chart_blocks.append(
+                f"<div class='chart'><h3>{title}</h3>"
+                f"<img src='data:image/png;base64,{img_b64}' alt='{title}' /></div>"
+            )
+
+        html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>EDA Report</title>
+<style>
+body {{ font-family: Arial, sans-serif; margin: 24px; color: #111; }}
+h1, h2, h3 {{ color: #1b263b; }}
+.meta {{ margin-bottom: 16px; }}
+.meta p {{ margin: 4px 0; }}
+.table {{ border-collapse: collapse; width: 100%; margin: 12px 0 24px 0; }}
+.table th, .table td {{ border: 1px solid #ddd; padding: 6px; text-align: left; font-size: 12px; }}
+.chart img {{ max-width: 100%; height: auto; border: 1px solid #ddd; padding: 6px; }}
+.note {{ font-size: 12px; color: #444; }}
+</style>
+</head>
+<body>
+  <h1>EDA Report</h1>
+  <div class="meta">
+    <p><strong>Dataset Source:</strong> {DATASET_SOURCE}</p>
+    <p><strong>Dataset Link:</strong> {DATASET_LINK}</p>
+    <p><strong>Target Variable:</strong> {target_col}</p>
+    <p><strong>Problem Type:</strong> {problem_type}</p>
+    <p><strong>Rows:</strong> {len(df)}</p>
+    <p><strong>Features:</strong> {len(df.columns) - 1}</p>
+    <p class="note">Report scope: {scope_label}</p>
+  </div>
+
+  <h2>Missing Values</h2>
+  {missing_df.to_html(index=False, border=0, classes="table")}
+
+  <h2>Summary Statistics</h2>
+  {summary_df.to_html(index=False, border=0, classes="table")}
+
+  <h2>Target Distribution</h2>
+  {target_table if target_table else "<p>No target column available.</p>"}
+
+  <h2>Charts</h2>
+  {"".join(chart_blocks)}
+</body>
+</html>
+"""
+        return html
+
+    def build_eda_report_pdf(self, df, target_col, scope_label="current filtered view"):
+        if df is None:
+            return b""
+
+        problem_type = self.infer_problem_type(df, target_col)
+        buffer = io.BytesIO()
+        with PdfPages(buffer) as pdf:
+            fig = plt.figure(figsize=(8.27, 11.69))
+            fig.text(0.07, 0.95, "EDA Report", fontsize=18, weight="bold")
+            lines = [
+                f"Dataset Source: {DATASET_SOURCE}",
+                f"Dataset Link: {DATASET_LINK}",
+                f"Target Variable: {target_col}",
+                f"Problem Type: {problem_type}",
+                f"Rows: {len(df)}",
+                f"Features: {len(df.columns) - 1}",
+                f"Report scope: {scope_label}",
+            ]
+            y_pos = 0.9
+            for line in lines:
+                fig.text(0.07, y_pos, line, fontsize=11)
+                y_pos -= 0.03
+            pdf.savefig(fig)
+            plt.close(fig)
+
+            summary_df = df.describe().T.round(4).reset_index().rename(columns={"index": "Feature"})
+            fig, ax = plt.subplots(figsize=(8.27, 11.69))
+            ax.axis("off")
+            ax.set_title("Summary Statistics", pad=20)
+            table = ax.table(
+                cellText=summary_df.values,
+                colLabels=summary_df.columns,
+                loc="center",
+            )
+            table.auto_set_font_size(False)
+            table.set_fontsize(8)
+            table.scale(1, 1.2)
+            pdf.savefig(fig)
+            plt.close(fig)
+
+            missing_df = df.isna().sum().reset_index()
+            missing_df.columns = ["Feature", "Missing Count"]
+            fig, ax = plt.subplots(figsize=(8.27, 11.69))
+            ax.axis("off")
+            ax.set_title("Missing Values", pad=20)
+            table = ax.table(
+                cellText=missing_df.values,
+                colLabels=missing_df.columns,
+                loc="center",
+            )
+            table.auto_set_font_size(False)
+            table.set_fontsize(8)
+            table.scale(1, 1.2)
+            pdf.savefig(fig)
+            plt.close(fig)
+
+            figures = self.build_eda_figures(df, target_col)
+            for title, fig in figures:
+                fig.suptitle(title)
+                pdf.savefig(fig)
+                plt.close(fig)
+
+        buffer.seek(0)
+        return buffer.getvalue()
 
     def detect_columns(self, df, target_col):
         numeric_cols = df.drop(columns=[target_col]).select_dtypes(include=[np.number]).columns.tolist()
@@ -147,7 +434,31 @@ class HeartDashboard:
         col3.metric("Features", len(df.columns))
 
         with st.expander("Show Raw Data", expanded=True):
+            st.caption(
+                "Cleaned dataset applies missing and outlier handling on the current view. "
+                "Processed dataset applies encoding and scaling for modeling."
+            )
             st.dataframe(df.head(20), width='stretch')
+            cleaned_df = self.build_cleaned_dataset(df, target_col)
+            if cleaned_df is not None:
+                cleaned_csv = cleaned_df.to_csv(index=False).encode("utf-8")
+                st.download_button(
+                    "Download Cleaned Dataset (Missing/Outliers)",
+                    cleaned_csv,
+                    "cleaned_dataset.csv",
+                    "text/csv"
+                )
+            try:
+                processed_df = self.build_processed_view(df, target_col)
+                processed_csv = processed_df.to_csv(index=False).encode("utf-8")
+                st.download_button(
+                    "Download Processed Dataset (Encoded/Scaled)",
+                    processed_csv,
+                    "processed_dataset.csv",
+                    "text/csv"
+                )
+            except Exception as exc:
+                st.warning(f"Processed dataset could not be built with current settings: {exc}")
 
         st.subheader("Dataset Structure")
         buffer = pd.DataFrame({
@@ -160,37 +471,81 @@ class HeartDashboard:
         st.subheader("Dataset Description")
         st.markdown(f"[Open Dataset Link]({DATASET_LINK})")
         col_a, col_b = st.columns(2)
+        problem_type = self.infer_problem_type(df, target_col)
         with col_a:
             st.text_input("Dataset Source", value=DATASET_SOURCE, disabled=True)
             st.text_input("Dataset Link", value=DATASET_LINK, disabled=True)
             st.text_input("Data Type", value="Structured", disabled=True)
         with col_b:
             st.text_input("Target Variable", value=target_col, disabled=True)
+            st.text_input("Problem Type", value=problem_type, disabled=True)
             st.text_input("Number of Samples", value=str(len(df)), disabled=True)
             st.text_input("Number of Features", value=str(len(df.columns) - 1), disabled=True)
 
     def show_statistics(self, df, target_col):
         st.header("Statistical Summary")
+        cleaned_df = self.build_cleaned_dataset(df, target_col)
+        if cleaned_df is not None and not cleaned_df.empty:
+            eda_df = cleaned_df
+            scope_label = "cleaned filtered view (missing values handled, outliers clipped)"
+        else:
+            eda_df = df
+            scope_label = "current filtered view (cleaning unavailable)"
+
+        eda_text = self.build_eda_summary_text(eda_df, target_col, scope_label=scope_label)
+        if eda_text:
+            st.download_button(
+                "Download EDA Summary (TXT)",
+                eda_text.encode("utf-8"),
+                "eda_summary.txt",
+                "text/plain"
+            )
+        eda_html = self.build_eda_report_html(eda_df, target_col, scope_label=scope_label)
+        if eda_html:
+            st.download_button(
+                "Download EDA Report (HTML)",
+                eda_html.encode("utf-8"),
+                "eda_report.html",
+                "text/html"
+            )
+        eda_pdf = self.build_eda_report_pdf(eda_df, target_col, scope_label=scope_label)
+        if eda_pdf:
+            st.download_button(
+                "Download EDA Report (PDF)",
+                eda_pdf,
+                "eda_report.pdf",
+                "application/pdf"
+            )
+        st.caption(f"EDA scope: {scope_label}")
         st.subheader("Numerical Statistics")
-        st.dataframe(df.describe().T, width='stretch')
+        st.dataframe(eda_df.describe().T, width='stretch')
 
         st.subheader("Missing Values")
-        missing = df.isna().sum().reset_index()
+        missing = eda_df.isna().sum().reset_index()
         missing.columns = ["Column", "Missing Count"]
         st.dataframe(missing, width='stretch')
 
-        if target_col in df.columns:
+        if target_col in eda_df.columns:
             st.subheader("Target Distribution")
-            target_counts = df[target_col].value_counts().reset_index()
+            target_counts = eda_df[target_col].value_counts().reset_index()
             target_counts.columns = ["Target", "Count"]
             fig = px.pie(target_counts, values="Count", names="Target", hole=0.4)
             st.plotly_chart(fig, width='stretch')
 
     def show_visualizations(self, df, target_col):
         st.header("Interactive Visualizations")
-        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        cleaned_df = self.build_cleaned_dataset(df, target_col)
+        if cleaned_df is not None and not cleaned_df.empty:
+            eda_df = cleaned_df
+            scope_label = "cleaned filtered view (missing values handled, outliers clipped)"
+        else:
+            eda_df = df
+            scope_label = "current filtered view (cleaning unavailable)"
+        st.caption(f"EDA scope: {scope_label}")
+
+        numeric_cols = eda_df.select_dtypes(include=[np.number]).columns.tolist()
         numeric_cols = [c for c in numeric_cols if c != target_col]
-        _, categorical_cols, low_card = self.detect_columns(df, target_col)
+        _, categorical_cols, low_card = self.detect_columns(eda_df, target_col)
         categorical_cols = sorted(set(categorical_cols + low_card))
 
         tab1, tab2, tab3 = st.tabs(["Distributions", "Categorical Analysis", "Correlations"])
@@ -199,22 +554,22 @@ class HeartDashboard:
             if numeric_cols:
                 numeric_col = st.selectbox("Select Feature for Histogram", numeric_cols)
                 fig = px.histogram(
-                    df, x=numeric_col, color=target_col if target_col in df.columns else None,
+                    eda_df, x=numeric_col, color=target_col if target_col in eda_df.columns else None,
                     barmode="overlay", opacity=0.7
                 )
                 st.plotly_chart(fig, width='stretch')
 
                 fig_box = px.box(
-                    df, x=target_col if target_col in df.columns else None, y=numeric_col
+                    eda_df, x=target_col if target_col in eda_df.columns else None, y=numeric_col
                 )
                 st.plotly_chart(fig_box, width='stretch')
             else:
                 st.info("No numeric columns found for distribution plots.")
 
         with tab2:
-            if categorical_cols and target_col in df.columns:
+            if categorical_cols and target_col in eda_df.columns:
                 cat_col = st.selectbox("Select Categorical Feature", categorical_cols)
-                cat_data = df.groupby([cat_col, target_col]).size().reset_index(name="count")
+                cat_data = eda_df.groupby([cat_col, target_col]).size().reset_index(name="count")
                 fig = px.bar(cat_data, x=cat_col, y="count", color=target_col, barmode="group")
                 st.plotly_chart(fig, width='stretch')
             else:
@@ -222,7 +577,7 @@ class HeartDashboard:
 
         with tab3:
             if numeric_cols:
-                corr_matrix = df[numeric_cols + [target_col]].corr()
+                corr_matrix = eda_df[numeric_cols + [target_col]].corr()
                 fig = px.imshow(
                     corr_matrix, text_auto=".2f", aspect="auto", color_continuous_scale="RdBu_r"
                 )
@@ -267,6 +622,33 @@ class HeartDashboard:
             k_features = st.slider("Number of features to keep", 5, 50, 20, key="k_features")
             if enable_fs:
                 st.info("SelectKBest uses mutual information for classification.")
+                X = df.drop(columns=[target_col])
+                y = df[target_col]
+                X, y, dropped = self.drop_missing_target_xy(X, y)
+                if dropped:
+                    st.info(f"Dropped {dropped} rows with missing target before feature selection.")
+                if st.session_state.get("missing_strategy") == "Drop Rows":
+                    mask = X.notna().all(axis=1) & y.notna()
+                    X = X[mask]
+                    y = y[mask]
+                try:
+                    preprocessor = self.build_preprocessor(df, target_col)
+                    X_processed = preprocessor.fit_transform(X)
+                    feature_names = preprocessor.get_feature_names_out()
+                    selector = SelectKBest(mutual_info_classif, k=min(k_features, len(feature_names)))
+                    selector.fit(X_processed, y)
+                    support = selector.get_support()
+                    selected_features = np.array(feature_names)[support].tolist()
+                    st.write(f"Features before selection: {len(feature_names)}")
+                    st.write(f"Features after selection: {len(selected_features)}")
+                    st.write("Selected features:")
+                    st.code(", ".join(selected_features))
+                    st.caption(
+                        "Justification: k is user-defined to balance model simplicity, "
+                        "interpretability, and performance."
+                    )
+                except Exception as exc:
+                    st.warning(f"Could not compute selected features with current settings: {exc}")
 
         st.markdown("---")
         st.subheader("Processed Data Preview")
@@ -329,25 +711,62 @@ class HeartDashboard:
         steps.append(("model", model))
         return Pipeline(steps)
 
+    def build_processed_view(self, df, target_col):
+        X = df.drop(columns=[target_col])
+        y = df[target_col].copy()
+        X, y, _ = self.drop_missing_target_xy(X, y)
+        if st.session_state.get("missing_strategy") == "Drop Rows":
+            mask = X.notna().all(axis=1) & y.notna()
+            X = X[mask]
+            y = y[mask]
+        preprocessor = self.build_preprocessor(df, target_col)
+        X_processed = preprocessor.fit_transform(X)
+        feature_names = preprocessor.get_feature_names_out()
+        processed_df = pd.DataFrame(X_processed, columns=feature_names)
+        processed_df[target_col] = y.reset_index(drop=True)
+        return processed_df
+
     def evaluate_train_test(self, pipeline, X_train, X_test, y_train, y_test):
         pipeline.fit(X_train, y_train)
         y_pred = pipeline.predict(X_test)
 
+        n_classes = len(np.unique(y_test))
         if hasattr(pipeline.named_steps["model"], "predict_proba"):
-            y_prob = pipeline.predict_proba(X_test)[:, 1]
+            probas = pipeline.predict_proba(X_test)
+            if n_classes > 2:
+                y_prob = probas
+            else:
+                y_prob = probas[:, 1]
         else:
             y_prob = None
 
+        avg_method = "macro" if n_classes > 2 else "binary"
         metrics = {
             "Accuracy": accuracy_score(y_test, y_pred),
-            "Precision": precision_score(y_test, y_pred),
-            "Recall": recall_score(y_test, y_pred),
-            "F1 Score": f1_score(y_test, y_pred),
+            "Precision": precision_score(y_test, y_pred, average=avg_method, zero_division=0),
+            "Recall": recall_score(y_test, y_pred, average=avg_method, zero_division=0),
+            "F1 Score": f1_score(y_test, y_pred, average=avg_method, zero_division=0),
         }
 
         if y_prob is not None:
-            metrics["AUC"] = roc_auc_score(y_test, y_prob)
-            metrics["PR AUC"] = average_precision_score(y_test, y_prob)
+            if n_classes > 2:
+                classes = np.unique(y_test)
+                y_bin = label_binarize(y_test, classes=classes)
+                try:
+                    metrics["AUC"] = roc_auc_score(
+                        y_bin, y_prob, multi_class="ovr", average="macro"
+                    )
+                except Exception:
+                    metrics["AUC"] = np.nan
+                try:
+                    metrics["PR AUC"] = average_precision_score(
+                        y_bin, y_prob, average="macro"
+                    )
+                except Exception:
+                    metrics["PR AUC"] = np.nan
+            else:
+                metrics["AUC"] = roc_auc_score(y_test, y_prob)
+                metrics["PR AUC"] = average_precision_score(y_test, y_prob)
         else:
             metrics["AUC"] = np.nan
             metrics["PR AUC"] = np.nan
@@ -356,22 +775,35 @@ class HeartDashboard:
         return metrics, y_pred, pipeline, cm
 
     def evaluate_cv(self, pipeline, X, y, cv):
-        scoring = {
-            "accuracy": "accuracy",
-            "precision": "precision",
-            "recall": "recall",
-            "f1": "f1",
-            "roc_auc": "roc_auc",
-            "pr_auc": "average_precision",
-        }
+        n_classes = len(np.unique(y))
+        scoring = {"accuracy": "accuracy"}
+        if n_classes > 2:
+            scoring.update(
+                {
+                    "precision": "precision_macro",
+                    "recall": "recall_macro",
+                    "f1": "f1_macro",
+                    "roc_auc": "roc_auc_ovr",
+                }
+            )
+        else:
+            scoring.update(
+                {
+                    "precision": "precision",
+                    "recall": "recall",
+                    "f1": "f1",
+                    "roc_auc": "roc_auc",
+                    "pr_auc": "average_precision",
+                }
+            )
         scores = cross_validate(pipeline, X, y, cv=cv, scoring=scoring, return_train_score=True)
         metrics = {
             "Accuracy": scores["test_accuracy"].mean(),
             "Precision": scores["test_precision"].mean(),
             "Recall": scores["test_recall"].mean(),
             "F1 Score": scores["test_f1"].mean(),
-            "AUC": scores["test_roc_auc"].mean(),
-            "PR AUC": scores["test_pr_auc"].mean(),
+            "AUC": scores["test_roc_auc"].mean() if "test_roc_auc" in scores else np.nan,
+            "PR AUC": scores["test_pr_auc"].mean() if "test_pr_auc" in scores else np.nan,
             "Train Accuracy": scores["train_accuracy"].mean(),
             "Train F1": scores["train_f1"].mean(),
         }
@@ -393,6 +825,53 @@ class HeartDashboard:
         fig = px.bar(melted, x="Model", y="Score", color="Metric", barmode="group", text_auto=".3f")
         fig.update_yaxes(range=[0, 1.05])
         st.plotly_chart(fig, width='stretch')
+
+    def show_before_after(self, df, target_col):
+        st.header("Before and After Comparison")
+        st.markdown("Generate a processed dataset using current preprocessing selections.")
+
+        if st.button("Build Processed Dataset"):
+            try:
+                processed_df = self.build_processed_view(df, target_col)
+                st.session_state["processed_df"] = processed_df
+            except Exception as exc:
+                st.error(f"Failed to build processed dataset: {exc}")
+                return
+
+        processed_df = st.session_state.get("processed_df")
+        if processed_df is None:
+            st.info("Click 'Build Processed Dataset' to create the processed view.")
+            return
+        csv = processed_df.to_csv(index=False).encode("utf-8")
+        st.download_button("Download Processed Dataset", csv, "processed_dataset.csv", "text/csv")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.subheader("Raw Data Summary")
+            st.dataframe(df.describe().T, width='stretch')
+        with col2:
+            st.subheader("Processed Data Summary")
+            st.dataframe(processed_df.describe().T, width='stretch')
+
+        st.subheader("Target Distribution (Raw vs Processed)")
+        raw_counts = df[target_col].value_counts().reset_index()
+        raw_counts.columns = ["Target", "Count"]
+        proc_counts = processed_df[target_col].value_counts().reset_index()
+        proc_counts.columns = ["Target", "Count"]
+
+        col3, col4 = st.columns(2)
+        with col3:
+            st.plotly_chart(
+                px.pie(raw_counts, values="Count", names="Target", hole=0.4),
+                width='stretch',
+                key="raw_target_pie"
+            )
+        with col4:
+            st.plotly_chart(
+                px.pie(proc_counts, values="Count", names="Target", hole=0.4),
+                width='stretch',
+                key="processed_target_pie"
+            )
 
     def download_results(self, results, label, filename):
         if not results:
@@ -434,6 +913,109 @@ class HeartDashboard:
         }
         return summary
 
+    def _coerce_shap_arrays(self, shap_values, X_values, class_index=1):
+        if hasattr(shap_values, "values"):
+            values = shap_values.values
+            data = shap_values.data if getattr(shap_values, "data", None) is not None else X_values
+            values = np.array(values)
+            if values.ndim == 3:
+                idx = min(class_index, values.shape[-1] - 1)
+                values = values[:, :, idx]
+            return values, np.array(data)
+        if isinstance(shap_values, list):
+            values = shap_values[1] if len(shap_values) > 1 else shap_values[0]
+            return np.array(values), np.array(X_values)
+        values = np.array(shap_values)
+        if values.ndim == 3:
+            idx = min(class_index, values.shape[-1] - 1)
+            values = values[:, :, idx]
+        return values, np.array(X_values)
+
+    def build_shap_summary_plotly(self, shap_values, X_values, feature_names, max_display=20, class_index=1):
+        values, data = self._coerce_shap_arrays(shap_values, X_values, class_index=class_index)
+        shap_df = pd.DataFrame(values, columns=feature_names)
+        data_df = pd.DataFrame(data, columns=feature_names)
+
+        mean_abs = shap_df.abs().mean().sort_values(ascending=False)
+        top_features = mean_abs.head(max_display).index.tolist()
+
+        rng = np.random.default_rng(42)
+        fig = go.Figure()
+        ordered = list(reversed(top_features))
+        for i, feat in enumerate(ordered):
+            vals = shap_df[feat].values
+            feat_vals = data_df[feat].values
+            jitter = (rng.random(len(vals)) - 0.5) * 0.6
+            y = np.full(len(vals), i, dtype=float) + jitter
+            fig.add_trace(
+                go.Scattergl(
+                    x=vals,
+                    y=y,
+                    mode="markers",
+                    marker=dict(
+                        size=6,
+                        opacity=0.7,
+                        color=feat_vals,
+                        colorscale="RdBu",
+                        showscale=(i == 0),
+                        colorbar=dict(title="Feature value") if i == 0 else None,
+                    ),
+                    hovertemplate=(
+                        f"{feat}<br>SHAP=%{{x:.4f}}<br>Value=%{{marker.color:.4f}}<extra></extra>"
+                    ),
+                    showlegend=False,
+                )
+            )
+
+        height = min(800, max(420, 35 * len(top_features) + 140))
+        fig.update_yaxes(
+            tickmode="array",
+            tickvals=list(range(len(ordered))),
+            ticktext=ordered,
+            title=""
+        )
+        fig.update_xaxes(title="SHAP value (impact on model output)")
+        fig.update_layout(height=height, margin=dict(l=140, r=20, t=20, b=40))
+
+        importance = mean_abs.loc[top_features].sort_values(ascending=True)
+        bar_fig = go.Figure(
+            go.Bar(x=importance.values, y=importance.index, orientation="h")
+        )
+        bar_fig.update_layout(
+            height=min(600, max(360, 28 * len(top_features) + 120)),
+            margin=dict(l=140, r=20, t=20, b=40),
+            xaxis_title="Mean |SHAP|"
+        )
+        return fig, bar_fig
+
+    def compute_feature_importance(self, model_pipeline, df, target_col, top_n=20):
+        preprocessor = model_pipeline.named_steps["preprocess"]
+        feature_names = preprocessor.get_feature_names_out()
+
+        if "selector" in model_pipeline.named_steps:
+            support = model_pipeline.named_steps["selector"].get_support()
+            feature_names = feature_names[support]
+
+        model = model_pipeline.named_steps["model"]
+        if hasattr(model, "feature_importances_"):
+            importances = model.feature_importances_
+            fi_df = pd.DataFrame({"Feature": feature_names, "Importance": importances})
+        else:
+            X = df.drop(columns=[target_col])
+            y = df[target_col]
+            if st.session_state.get("missing_strategy") == "Drop Rows":
+                mask = X.notna().all(axis=1) & y.notna()
+                X = X[mask]
+                y = y[mask]
+            result = permutation_importance(
+                model_pipeline, X, y, n_repeats=10, random_state=42, n_jobs=-1
+            )
+            fi_df = pd.DataFrame(
+                {"Feature": feature_names, "Importance": result.importances_mean}
+            )
+
+        return fi_df.sort_values(by="Importance", ascending=False).head(top_n)
+
     def train_models_section(self, df, target_col):
         st.header("Model Training, Tuning, and Comparison")
 
@@ -441,8 +1023,26 @@ class HeartDashboard:
             st.error("Target column not found in dataset.")
             return
 
+        st.subheader("Model Descriptions")
+        st.markdown(
+            """
+**Dummy (Most Frequent)**: Baseline classifier that predicts the most common class; useful to set a minimum bar.
+**Logistic Regression**: Linear model with a sigmoid function; fast, interpretable, and a strong baseline for binary tasks.
+**SVM (RBF)**: Finds a maximum-margin decision boundary with non-linear kernels; strong for complex boundaries but can be slower.
+**KNN**: Classifies based on nearest neighbors; simple and flexible but sensitive to scaling and noise.
+**Decision Tree**: Rule-based splits for interpretability; can overfit without constraints.
+**Random Forest**: Bagged ensemble of trees to reduce variance; robust and handles non-linearities well.
+**Gradient Boosting**: Sequentially builds trees to correct errors; often high accuracy but sensitive to tuning.
+**AdaBoost**: Boosts weak learners with reweighting; can perform well on clean data but sensitive to noise.
+**XGBoost**: Optimized gradient boosting; strong performance with regularization and efficient training.
+"""
+        )
+
         X = df.drop(columns=[target_col])
         y = df[target_col]
+        X, y, dropped = self.drop_missing_target_xy(X, y)
+        if dropped:
+            st.warning(f"Dropped {dropped} rows with missing target before modeling.")
 
         missing_strategy = st.session_state.get("missing_strategy", "Impute")
         if missing_strategy == "Drop Rows":
@@ -450,8 +1050,12 @@ class HeartDashboard:
             X = X[mask]
             y = y[mask]
 
-        eval_method = st.radio("Evaluation Method", ["Train-Test Split", "Stratified K-Fold CV"], key="eval_method")
         cv_folds = st.slider("CV Folds", 3, 10, 5, key="cv_folds")
+        run_holdout = st.checkbox(
+            "Also run Train-Test Split diagnostics (optional)",
+            value=False,
+            key="run_holdout"
+        )
         rank_metric = st.selectbox(
             "Ranking Metric (best/worst)",
             ["F1 Score", "AUC", "PR AUC", "Accuracy"],
@@ -459,6 +1063,16 @@ class HeartDashboard:
             key="rank_metric"
         )
         handle_imbalance = st.checkbox("Handle class imbalance (class_weight=balanced)", value=False, key="class_weight")
+        scoring_metric = st.session_state.get("scoring_metric", "f1")
+        non_scoring_metric = st.session_state.get("non_scoring_metric", "f1")
+        st.info(
+            f"Cross-Validation Settings: "
+            f"Technique=Stratified K-Fold CV, "
+            f"Folds={cv_folds}, "
+            f"Scoring (tuning)={non_scoring_metric} / {scoring_metric}"
+        )
+        if run_holdout:
+            st.caption("Holdout diagnostics use an 80/20 stratified split for confusion matrix only.")
 
         class_weight = "balanced" if handle_imbalance else None
         if handle_imbalance and y.nunique() == 2:
@@ -473,42 +1087,31 @@ class HeartDashboard:
             "Logistic Regression": LogisticRegression(max_iter=1000, class_weight=class_weight),
             "SVM (RBF)": SVC(probability=True, class_weight=class_weight),
             "KNN": KNeighborsClassifier(),
+            "Decision Tree": DecisionTreeClassifier(random_state=42, class_weight=class_weight),
         }
 
         ensemble_models = {
             "Random Forest": RandomForestClassifier(random_state=42, class_weight=class_weight),
             "Gradient Boosting": GradientBoostingClassifier(random_state=42),
+            "AdaBoost": AdaBoostClassifier(random_state=42),
         }
         if XGBOOST_AVAILABLE:
             ensemble_models["XGBoost"] = xgb.XGBClassifier(
-                eval_metric="logloss", random_state=42, use_label_encoder=False, scale_pos_weight=scale_pos_weight
+                eval_metric="logloss", random_state=42, scale_pos_weight=scale_pos_weight
             )
 
         st.subheader("Non-ensemble Models")
         if st.button("Run Non-ensemble Models"):
             results = []
-            details = {}
-            if eval_method == "Train-Test Split":
-                X_train, X_test, y_train, y_test = train_test_split(
-                    X, y, test_size=0.2, random_state=42, stratify=y
-                )
-                for name, model in non_ensemble_models.items():
-                    pipeline = self.build_pipeline(model, df, target_col)
-                    metrics, _, _, cm = self.evaluate_train_test(pipeline, X_train, X_test, y_train, y_test)
-                    metrics["Model"] = name
-                    results.append(metrics)
-                    details[name] = {"cm": cm, "pipeline": pipeline}
-            else:
-                cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
-                for name, model in non_ensemble_models.items():
-                    pipeline = self.build_pipeline(model, df, target_col)
-                    metrics = self.evaluate_cv(pipeline, X, y, cv)
-                    metrics["Model"] = name
-                    results.append(metrics)
+            cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
+            for name, model in non_ensemble_models.items():
+                pipeline = self.build_pipeline(model, df, target_col)
+                metrics = self.evaluate_cv(pipeline, X, y, cv)
+                metrics["Model"] = name
+                results.append(metrics)
 
             self.display_results(results, plot_metrics=["Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
             st.session_state["non_ensemble_results"] = results
-            st.session_state["non_ensemble_details"] = details
 
             summary = self.summarize_results(results, rank_metric)
             if summary:
@@ -519,37 +1122,28 @@ class HeartDashboard:
                     + "\n".join([f"- {n}" for n in summary["notes"]])
                 )
 
-                if eval_method == "Train-Test Split" and summary["best"] in details:
-                    st.subheader("Best Model Confusion Matrix")
-                    cm = details[summary["best"]]["cm"]
+                if run_holdout and summary["best"] in non_ensemble_models:
+                    st.subheader("Best Model Confusion Matrix (Holdout)")
+                    X_train, X_test, y_train, y_test = train_test_split(
+                        X, y, test_size=0.2, random_state=42, stratify=y
+                    )
+                    pipeline = self.build_pipeline(non_ensemble_models[summary["best"]], df, target_col)
+                    _, _, _, cm = self.evaluate_train_test(pipeline, X_train, X_test, y_train, y_test)
                     fig = px.imshow(cm, text_auto=True, color_continuous_scale="Blues")
                     st.plotly_chart(fig, width='stretch')
 
         st.subheader("Ensemble Models (Before Tuning)")
         if st.button("Run Ensemble Models"):
             results = []
-            details = {}
-            if eval_method == "Train-Test Split":
-                X_train, X_test, y_train, y_test = train_test_split(
-                    X, y, test_size=0.2, random_state=42, stratify=y
-                )
-                for name, model in ensemble_models.items():
-                    pipeline = self.build_pipeline(model, df, target_col)
-                    metrics, _, _, cm = self.evaluate_train_test(pipeline, X_train, X_test, y_train, y_test)
-                    metrics["Model"] = name
-                    results.append(metrics)
-                    details[name] = {"cm": cm, "pipeline": pipeline}
-            else:
-                cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
-                for name, model in ensemble_models.items():
-                    pipeline = self.build_pipeline(model, df, target_col)
-                    metrics = self.evaluate_cv(pipeline, X, y, cv)
-                    metrics["Model"] = name
-                    results.append(metrics)
+            cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=42)
+            for name, model in ensemble_models.items():
+                pipeline = self.build_pipeline(model, df, target_col)
+                metrics = self.evaluate_cv(pipeline, X, y, cv)
+                metrics["Model"] = name
+                results.append(metrics)
 
             self.display_results(results, plot_metrics=["Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
             st.session_state["ensemble_results"] = results
-            st.session_state["ensemble_details"] = details
 
             summary = self.summarize_results(results, rank_metric)
             if summary:
@@ -560,9 +1154,13 @@ class HeartDashboard:
                     + "\n".join([f"- {n}" for n in summary["notes"]])
                 )
 
-                if eval_method == "Train-Test Split" and summary["best"] in details:
-                    st.subheader("Best Model Confusion Matrix")
-                    cm = details[summary["best"]]["cm"]
+                if run_holdout and summary["best"] in ensemble_models:
+                    st.subheader("Best Model Confusion Matrix (Holdout)")
+                    X_train, X_test, y_train, y_test = train_test_split(
+                        X, y, test_size=0.2, random_state=42, stratify=y
+                    )
+                    pipeline = self.build_pipeline(ensemble_models[summary["best"]], df, target_col)
+                    _, _, _, cm = self.evaluate_train_test(pipeline, X_train, X_test, y_train, y_test)
                     fig = px.imshow(cm, text_auto=True, color_continuous_scale="Blues")
                     st.plotly_chart(fig, width='stretch')
 
@@ -587,6 +1185,11 @@ class HeartDashboard:
                 "KNN": {
                     "model__n_neighbors": [3, 5, 7, 11],
                     "model__weights": ["uniform", "distance"],
+                },
+                "Decision Tree": {
+                    "model__max_depth": [None, 3, 5, 10],
+                    "model__min_samples_split": [2, 5, 10],
+                    "model__criterion": ["gini", "entropy"],
                 },
             }
 
@@ -641,6 +1244,10 @@ class HeartDashboard:
                     "model__n_estimators": [100, 200, 300],
                     "model__learning_rate": [0.05, 0.1, 0.2],
                     "model__max_depth": [2, 3, 4],
+                },
+                "AdaBoost": {
+                    "model__n_estimators": [50, 100, 200],
+                    "model__learning_rate": [0.5, 1.0, 1.5],
                 },
             }
             if XGBOOST_AVAILABLE:
@@ -704,30 +1311,109 @@ class HeartDashboard:
             else:
                 st.info("Run at least one modeling step first to build overall comparison.")
 
+        st.subheader("Before vs After Tuning Comparison")
+        compare_metric = st.selectbox(
+            "Comparison Metric",
+            ["F1 Score", "AUC", "PR AUC", "Accuracy"],
+            index=0,
+            key="compare_metric"
+        )
+
+        def build_comparison(before, after, metric):
+            if not before or not after:
+                return None
+            before_df = pd.DataFrame(before)[["Model", metric]].rename(columns={metric: "Before"})
+            after_df = pd.DataFrame(after)[["Model", metric]].rename(columns={metric: "After"})
+            merged = before_df.merge(after_df, on="Model", how="inner")
+            merged["Improvement"] = merged["After"] - merged["Before"]
+            return merged.sort_values(by="Improvement", ascending=False)
+
+        if st.button("Compare Non-ensemble Before/After"):
+            comparison = build_comparison(
+                st.session_state.get("non_ensemble_results", []),
+                st.session_state.get("tuned_non_ensemble_results", []),
+                compare_metric,
+            )
+            if comparison is not None:
+                st.dataframe(comparison, width='stretch')
+            else:
+                st.info("Run non-ensemble models and tuning first.")
+
+        if st.button("Compare Ensemble Before/After"):
+            comparison = build_comparison(
+                st.session_state.get("ensemble_results", []),
+                st.session_state.get("tuned_ensemble_results", []),
+                compare_metric,
+            )
+            if comparison is not None:
+                st.dataframe(comparison, width='stretch')
+            else:
+                st.info("Run ensemble models and tuning first.")
+
+        st.subheader("Before vs After Tuning Tables")
+        metric_cols = ["Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"]
+
+        def build_before_after_table(before, after):
+            if not before or not after:
+                return None
+            before_df = pd.DataFrame(before)[["Model"] + metric_cols]
+            after_df = pd.DataFrame(after)[["Model"] + metric_cols]
+            merged = before_df.merge(
+                after_df,
+                on="Model",
+                how="inner",
+                suffixes=(" (Before)", " (After)")
+            )
+            return merged
+
+        non_table = build_before_after_table(
+            st.session_state.get("non_ensemble_results", []),
+            st.session_state.get("tuned_non_ensemble_results", []),
+        )
+        if non_table is not None:
+            st.markdown("**Non-ensemble Models**")
+            st.dataframe(non_table, width='stretch')
+        else:
+            st.info("Run non-ensemble models and tuning to build the before/after table.")
+
+        ens_table = build_before_after_table(
+            st.session_state.get("ensemble_results", []),
+            st.session_state.get("tuned_ensemble_results", []),
+        )
+        if ens_table is not None:
+            st.markdown("**Ensemble Models**")
+            st.dataframe(ens_table, width='stretch')
+        else:
+            st.info("Run ensemble models and tuning to build the before/after table.")
+
         st.subheader("Feature Importance (Ensemble Models)")
         tuned_models = st.session_state.get("tuned_models", {})
         if tuned_models:
-            model_name = st.selectbox("Select Model", list(tuned_models.keys()), key="fi_model")
-            model_pipeline = tuned_models[model_name]
-            try:
-                preprocessor = model_pipeline.named_steps["preprocess"]
-                feature_names = preprocessor.get_feature_names_out()
+            model_names = list(tuned_models.keys())
+            default_models = model_names[:3]
+            selected_models = st.multiselect(
+                "Select Models (Model4/5/6)",
+                model_names,
+                default=default_models,
+                key="fi_models"
+            )
+            top_n = st.slider("Top Features", 5, 30, 20, key="fi_top_n")
 
-                if "selector" in model_pipeline.named_steps:
-                    support = model_pipeline.named_steps["selector"].get_support()
-                    feature_names = feature_names[support]
-
-                model = model_pipeline.named_steps["model"]
-                if hasattr(model, "feature_importances_"):
-                    importances = model.feature_importances_
-                    fi_df = pd.DataFrame({"Feature": feature_names, "Importance": importances})
-                    fi_df = fi_df.sort_values(by="Importance", ascending=False).head(20)
-                    fig = px.bar(fi_df, x="Importance", y="Feature", orientation="h")
-                    st.plotly_chart(fig, width='stretch')
-                else:
-                    st.info("Selected model does not provide feature_importances_.")
-            except Exception as exc:
-                st.warning(f"Feature importance could not be computed: {exc}")
+            if not selected_models:
+                st.info("Select at least one model to view feature importance.")
+            else:
+                tabs = st.tabs(selected_models)
+                for tab, model_name in zip(tabs, selected_models):
+                    with tab:
+                        model_pipeline = tuned_models[model_name]
+                        try:
+                            fi_df = self.compute_feature_importance(
+                                model_pipeline, df, target_col, top_n=top_n
+                            )
+                            fig = px.bar(fi_df, x="Importance", y="Feature", orientation="h")
+                            st.plotly_chart(fig, width='stretch')
+                        except Exception as exc:
+                            st.warning(f"Feature importance could not be computed: {exc}")
         else:
             st.info("Run hyperparameter tuning to see feature importances.")
 
@@ -737,36 +1423,59 @@ class HeartDashboard:
         else:
             if tuned_models:
                 shap_model_name = st.selectbox("Select Model for SHAP", list(tuned_models.keys()), key="shap_model")
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    max_sample = min(1000, len(X))
+                    min_sample = min(50, max_sample)
+                    default_sample = min(200, max_sample)
+                    step_size = 10 if max_sample < 100 else 50
+                    sample_size = st.slider("SHAP sample size", min_sample, max_sample, default_sample, step=step_size)
+                with col_b:
+                    max_display = st.slider("Max features to display", 5, 30, 20)
                 if st.button("Run SHAP Summary"):
                     model_pipeline = tuned_models[shap_model_name]
-                    X_sample = X.sample(min(200, len(X)), random_state=42)
-                    model_pipeline.fit(X, y)
-                    model = model_pipeline.named_steps["model"]
-                    preprocessor = model_pipeline.named_steps["preprocess"]
-                    X_transformed = preprocessor.transform(X_sample)
-                    feature_names = preprocessor.get_feature_names_out()
-                    if "selector" in model_pipeline.named_steps:
-                        support = model_pipeline.named_steps["selector"].get_support()
-                        feature_names = feature_names[support]
+                    X_sample = X.sample(min(sample_size, len(X)), random_state=42)
+                    with st.spinner("Computing SHAP values..."):
+                        model_pipeline.fit(X, y)
+                        model = model_pipeline.named_steps["model"]
+                        preprocessor = model_pipeline.named_steps["preprocess"]
+                        X_transformed = preprocessor.transform(X_sample)
+                        feature_names = preprocessor.get_feature_names_out()
 
-                    if hasattr(model, "predict_proba"):
-                        try:
-                            explainer = shap.Explainer(model, X_transformed, feature_names=feature_names)
-                            shap_values = explainer(X_transformed)
-                            st.set_option("deprecation.showPyplotGlobalUse", False)
-                            shap.summary_plot(shap_values, X_transformed, feature_names=feature_names, show=False)
-                            st.pyplot(bbox_inches="tight")
-                        except Exception:
+                        if "selector" in model_pipeline.named_steps:
+                            selector = model_pipeline.named_steps["selector"]
+                            support = selector.get_support()
+                            X_transformed = selector.transform(X_transformed)
+                            feature_names = feature_names[support]
+
+                        if hasattr(model, "predict_proba"):
                             try:
-                                explainer = shap.TreeExplainer(model)
-                                shap_values = explainer.shap_values(X_transformed)
-                                st.set_option("deprecation.showPyplotGlobalUse", False)
-                                shap.summary_plot(shap_values, X_transformed, feature_names=feature_names, show=False)
-                                st.pyplot(bbox_inches="tight")
-                            except Exception as exc:
-                                st.warning(f"SHAP failed: {exc}")
-                    else:
-                        st.info("Selected model does not support SHAP with current setup.")
+                                explainer = shap.Explainer(model, X_transformed, feature_names=feature_names)
+                                shap_values = explainer(X_transformed)
+                            except Exception:
+                                try:
+                                    explainer = shap.TreeExplainer(model)
+                                    shap_values = explainer.shap_values(X_transformed)
+                                except Exception as exc:
+                                    st.warning(f"SHAP failed: {exc}")
+                                    shap_values = None
+                        else:
+                            st.info("Selected model does not support SHAP with current setup.")
+                            shap_values = None
+
+                    if shap_values is not None:
+                        beeswarm_fig, bar_fig = self.build_shap_summary_plotly(
+                            shap_values,
+                            X_transformed,
+                            feature_names,
+                            max_display=max_display,
+                            class_index=1
+                        )
+                        tab_a, tab_b = st.tabs(["Beeswarm (Interactive)", "Bar (Mean |SHAP|)"])
+                        with tab_a:
+                            st.plotly_chart(beeswarm_fig, width='stretch')
+                        with tab_b:
+                            st.plotly_chart(bar_fig, width='stretch')
             else:
                 st.info("Run hyperparameter tuning first to enable SHAP analysis.")
             with st.expander("SHAP Code Snippet"):
@@ -779,10 +1488,23 @@ model = model_pipeline.named_steps["model"]
 preprocessor = model_pipeline.named_steps["preprocess"]
 X_transformed = preprocessor.transform(X_sample)
 feature_names = preprocessor.get_feature_names_out()
+if "selector" in model_pipeline.named_steps:
+    selector = model_pipeline.named_steps["selector"]
+    support = selector.get_support()
+    X_transformed = selector.transform(X_transformed)
+    feature_names = feature_names[support]
 
 explainer = Explainer(model, X_transformed, feature_names=feature_names)
 shap_values = explainer(X_transformed)
-shap.summary_plot(shap_values, X_transformed, feature_names=feature_names)
+""",
+                    language="python"
+                )
+                st.code(
+                    """
+# Use a custom Plotly-based summary for interactivity
+beeswarm_fig, bar_fig = dashboard.build_shap_summary_plotly(
+    shap_values, X_transformed, feature_names, max_display=20
+)
 """,
                     language="python"
                 )
@@ -796,6 +1518,28 @@ shap.summary_plot(shap_values, X_transformed, feature_names=feature_names)
     def run(self):
         st.title("Heart Disease Analysis Dashboard")
         st.markdown("End-to-end EDA, preprocessing, modeling, and comparison pipeline.")
+        with st.expander("Project Information", expanded=False):
+            st.markdown(
+                """
+### Abstract
+This project builds a classification pipeline to predict heart disease using clinical features.
+It provides end-to-end EDA, preprocessing, model comparison, and tuning to identify strong
+predictive baselines and understand feature importance.
+
+### Problem Statement
+Predict whether a patient has heart disease based on clinical measurements.
+Early risk prediction supports decision-making and can guide follow-up testing.
+
+### Limitations
+- The dataset is structured and relatively small; results may not generalize to new populations.
+- Labels reflect historical diagnoses and may carry bias or noise.
+
+### Objectives
+1. Compare multiple machine learning classifiers for heart disease prediction.
+2. Provide transparent preprocessing with encoding, scaling, and feature selection.
+3. Evaluate models with cross-validation and hyperparameter tuning.
+"""
+            )
 
         raw_df = self.load_data()
         if raw_df is None:
@@ -817,7 +1561,9 @@ shap.summary_plot(shap_values, X_transformed, feature_names=feature_names)
             "Statistics",
             "Visualizations",
             "Pre-processing",
+            "Before/After",
             "Modeling",
+            "Ethics",
         ])
 
         with tabs[0]:
@@ -833,7 +1579,21 @@ shap.summary_plot(shap_values, X_transformed, feature_names=feature_names)
             self.show_preprocessing(filtered_df, target_col)
 
         with tabs[4]:
+            self.show_before_after(filtered_df, target_col)
+
+        with tabs[5]:
             self.train_models_section(filtered_df, target_col)
+
+        with tabs[6]:
+            st.header("Ethical & Privacy Considerations")
+            st.markdown(
+                """
+- **Privacy**: Use de-identified data and avoid exposing personal identifiers.
+- **Bias**: Evaluate performance across subgroups to detect disparities.
+- **Usage**: Predictions are decision-support only, not a clinical diagnosis.
+- **Transparency**: Document preprocessing choices and limitations clearly.
+"""
+            )
 
 
 if __name__ == "__main__":
