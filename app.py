@@ -404,31 +404,53 @@ h1, h2, h3 {{ color: #1b263b; }}
         return numeric_cols, categorical_cols, low_card
 
     def sidebar_filters(self, df):
-        st.sidebar.header("Filter Options")
+        st.sidebar.header("Filters")
+        st.sidebar.caption("Filters apply to all tabs and downloads.")
         if df is None:
             return None
 
         filtered_df = df.copy()
+        def _format_option(value, labels):
+            try:
+                return labels.get(int(value), str(value))
+            except Exception:
+                return str(value)
 
         if "age" in df.columns:
             min_age = int(df["age"].min())
             max_age = int(df["age"].max())
             selected_age = st.sidebar.slider(
-                "Age Range", min_age, max_age, (min_age, max_age))
+                "Age range (years)", min_age, max_age, (min_age, max_age))
             filtered_df = filtered_df[filtered_df["age"].between(
                 selected_age[0], selected_age[1])]
 
         if "sex" in df.columns:
             sex_options = sorted(df["sex"].unique())
+            sex_labels = {
+                0: "0 - Female",
+                1: "1 - Male",
+            }
             selected_sex = st.sidebar.multiselect(
-                "Sex (0: Female, 1: Male)", options=sex_options, default=sex_options
+                "Sex",
+                options=sex_options,
+                default=sex_options,
+                format_func=lambda value: _format_option(value, sex_labels),
             )
             filtered_df = filtered_df[filtered_df["sex"].isin(selected_sex)]
 
         if "cp" in df.columns:
             cp_options = sorted(df["cp"].unique())
+            cp_labels = {
+                0: "0 - Typical angina",
+                1: "1 - Atypical angina",
+                2: "2 - Non-anginal pain",
+                3: "3 - Asymptomatic",
+            }
             selected_cp = st.sidebar.multiselect(
-                "Chest Pain Type (cp)", options=cp_options, default=cp_options
+                "Chest pain type (cp)",
+                options=cp_options,
+                default=cp_options,
+                format_func=lambda value: _format_option(value, cp_labels),
             )
             filtered_df = filtered_df[filtered_df["cp"].isin(selected_cp)]
 
@@ -439,22 +461,23 @@ h1, h2, h3 {{ color: #1b263b; }}
 
     def show_data_overview(self, df, original_rows, removed_rows, target_col):
         st.header("Data Overview")
+        st.caption("Quick snapshot of the filtered dataset and export options.")
         col1, col2, col3 = st.columns(3)
         col1.metric("Total Records", len(df))
         col2.metric("Duplicates Removed", removed_rows)
         col3.metric("Features", len(df.columns))
 
-        with st.expander("Show Raw Data", expanded=True):
+        with st.expander("Preview & Downloads", expanded=True):
             st.caption(
-                "Cleaned dataset applies missing and outlier handling on the current view. "
-                "Processed dataset applies encoding and scaling for modeling."
+                "Preview shows the filtered data. Downloads use your preprocessing settings "
+                "(missing values, outliers, encoding, scaling)."
             )
             st.dataframe(df.head(20), width='stretch')
             cleaned_df = self.build_cleaned_dataset(df, target_col)
             if cleaned_df is not None:
                 cleaned_csv = cleaned_df.to_csv(index=False).encode("utf-8")
                 st.download_button(
-                    "Download Cleaned Dataset (Missing/Outliers)",
+                    "Download cleaned dataset (missing/outlier handling)",
                     cleaned_csv,
                     "cleaned_dataset.csv",
                     "text/csv"
@@ -464,7 +487,7 @@ h1, h2, h3 {{ color: #1b263b; }}
                 processed_csv = processed_df.to_csv(
                     index=False).encode("utf-8")
                 st.download_button(
-                    "Download Processed Dataset (Encoded/Scaled)",
+                    "Download processed dataset (encoded/scaled)",
                     processed_csv,
                     "processed_dataset.csv",
                     "text/csv"
@@ -474,6 +497,7 @@ h1, h2, h3 {{ color: #1b263b; }}
                     f"Processed dataset could not be built with current settings: {exc}")
 
         st.subheader("Dataset Structure")
+        st.caption("Columns, data types, and non-null counts for the filtered view.")
         buffer = pd.DataFrame({
             "Column": df.columns,
             "Non-Null Count": df.count(),
@@ -481,8 +505,8 @@ h1, h2, h3 {{ color: #1b263b; }}
         }).reset_index(drop=True)
         st.dataframe(buffer, width='stretch')
 
-        st.subheader("Dataset Description")
-        st.markdown(f"[Open Dataset Link]({DATASET_LINK})")
+        st.subheader("Dataset Metadata")
+        st.markdown(f"[Open source link]({DATASET_LINK})")
         col_a, col_b = st.columns(2)
         problem_type = self.infer_problem_type(df, target_col)
         with col_a:
@@ -500,6 +524,7 @@ h1, h2, h3 {{ color: #1b263b; }}
 
     def show_statistics(self, df, target_col):
         st.header("Statistical Summary")
+        st.caption("EDA reports and summary statistics for the filtered dataset.")
         cleaned_df = self.build_cleaned_dataset(df, target_col)
         if cleaned_df is not None and not cleaned_df.empty:
             eda_df = cleaned_df
@@ -512,7 +537,7 @@ h1, h2, h3 {{ color: #1b263b; }}
             eda_df, target_col, scope_label=scope_label)
         if eda_text:
             st.download_button(
-                "Download EDA Summary (TXT)",
+                "Download EDA summary (text)",
                 eda_text.encode("utf-8"),
                 "eda_summary.txt",
                 "text/plain"
@@ -521,7 +546,7 @@ h1, h2, h3 {{ color: #1b263b; }}
             eda_df, target_col, scope_label=scope_label)
         if eda_html:
             st.download_button(
-                "Download EDA Report (HTML)",
+                "Download EDA report (HTML)",
                 eda_html.encode("utf-8"),
                 "eda_report.html",
                 "text/html"
@@ -530,16 +555,16 @@ h1, h2, h3 {{ color: #1b263b; }}
             eda_df, target_col, scope_label=scope_label)
         if eda_pdf:
             st.download_button(
-                "Download EDA Report (PDF)",
+                "Download EDA report (PDF)",
                 eda_pdf,
                 "eda_report.pdf",
                 "application/pdf"
             )
         st.caption(f"EDA scope: {scope_label}")
-        st.subheader("Numerical Statistics")
+        st.subheader("Numeric Summary")
         st.dataframe(eda_df.describe().T, width='stretch')
 
-        st.subheader("Missing Values")
+        st.subheader("Missing Values by Column")
         missing = eda_df.isna().sum().reset_index()
         missing.columns = ["Column", "Missing Count"]
         st.dataframe(missing, width='stretch')
@@ -554,6 +579,7 @@ h1, h2, h3 {{ color: #1b263b; }}
 
     def show_visualizations(self, df, target_col):
         st.header("Interactive Visualizations")
+        st.caption("Explore distributions, categorical relationships, and correlations.")
         cleaned_df = self.build_cleaned_dataset(df, target_col)
         if cleaned_df is not None and not cleaned_df.empty:
             eda_df = cleaned_df
@@ -570,12 +596,12 @@ h1, h2, h3 {{ color: #1b263b; }}
         categorical_cols = sorted(set(categorical_cols + low_card))
 
         tab1, tab2, tab3 = st.tabs(
-            ["Distributions", "Categorical Analysis", "Correlations"])
+            ["Distributions", "Categorical Relationships", "Correlations"])
 
         with tab1:
             if numeric_cols:
                 numeric_col = st.selectbox(
-                    "Select Feature for Histogram", numeric_cols)
+                    "Choose a numeric feature to plot", numeric_cols)
                 fig = px.histogram(
                     eda_df, x=numeric_col, color=target_col if target_col in eda_df.columns else None,
                     barmode="overlay", opacity=0.7
@@ -592,7 +618,7 @@ h1, h2, h3 {{ color: #1b263b; }}
         with tab2:
             if categorical_cols and target_col in eda_df.columns:
                 cat_col = st.selectbox(
-                    "Select Categorical Feature", categorical_cols)
+                    "Choose a categorical feature", categorical_cols)
                 cat_data = eda_df.groupby(
                     [cat_col, target_col]).size().reset_index(name="count")
                 fig = px.bar(cat_data, x=cat_col, y="count",
@@ -615,41 +641,90 @@ h1, h2, h3 {{ color: #1b263b; }}
         st.header("Data Pre-processing")
         st.markdown(
             "Configure preprocessing steps that will be applied inside the ML pipeline.")
+        st.caption(
+            "These settings affect the training pipeline and the processed dataset preview, "
+            "not the raw data itself."
+        )
 
         numeric_cols, categorical_cols, low_card = self.detect_columns(
             df, target_col)
 
         with st.expander("1) Missing Values"):
+            missing_labels = {
+                "Impute": "Impute missing values (recommended)",
+                "Drop Rows": "Drop rows with any missing values",
+            }
             missing_strategy = st.selectbox(
-                "Missing value strategy", ["Impute", "Drop Rows"], key="missing_strategy"
+                "How should missing values be handled?",
+                ["Impute", "Drop Rows"],
+                key="missing_strategy",
+                format_func=lambda key: missing_labels.get(key, key),
             )
             if missing_strategy == "Drop Rows":
                 st.info("Rows with missing values will be dropped before training.")
+            else:
+                st.info(
+                    "Missing numeric values are filled with the median; categorical values "
+                    "use the most frequent category."
+                )
 
         with st.expander("2) Outlier Handling"):
+            outlier_labels = {
+                "None": "No outlier handling",
+                "IQR Clip": "Clip extreme values using IQR bounds",
+            }
             outlier_method = st.selectbox(
-                "Outlier method", ["None", "IQR Clip"], key="outlier_method"
+                "How should outliers be handled?",
+                ["None", "IQR Clip"],
+                key="outlier_method",
+                format_func=lambda key: outlier_labels.get(key, key),
             )
             if outlier_method == "IQR Clip":
                 st.info(
-                    "Outliers are clipped using IQR bounds inside the pipeline (no row removal).")
+                    "Numeric features are clipped to the IQR bounds inside the pipeline; no rows are removed."
+                )
+            else:
+                st.info("Outlier handling is skipped.")
 
         with st.expander("3) Encoding Categorical Features"):
             suggested_categorical = sorted(set(categorical_cols + low_card))
+            st.caption(
+                "Selected columns will be one-hot encoded. Low-cardinality numeric columns "
+                "are suggested as categorical by default."
+            )
             st.multiselect(
                 "Categorical columns", options=df.columns.drop(target_col),
                 default=suggested_categorical, key="categorical_cols"
             )
 
         with st.expander("4) Feature Scaling"):
+            scaling_labels = {
+                "StandardScaler": "StandardScaler (zero mean, unit variance)",
+                "MinMaxScaler": "MinMaxScaler (scale to 0-1)",
+                "None": "No scaling",
+            }
             scale_method = st.selectbox(
-                "Scaling method", ["StandardScaler", "MinMaxScaler", "None"], key="scale_method"
+                "How should numeric features be scaled?",
+                ["StandardScaler", "MinMaxScaler", "None"],
+                key="scale_method",
+                format_func=lambda key: scaling_labels.get(key, key),
             )
+            st.caption("Scaling applies to numeric features only; one-hot encoded columns are left as-is.")
 
         with st.expander("5) Feature Selection"):
-            enable_fs = st.checkbox("Enable SelectKBest", key="enable_fs")
+            st.caption(
+                "Optional step to keep only the most informative features. "
+                "Uses mutual information (classification)."
+            )
+            enable_fs = st.checkbox("Enable SelectKBest (mutual information)", key="enable_fs")
             k_features = st.slider(
-                "Number of features to keep", 5, 50, 20, key="k_features")
+                "Number of features to keep",
+                5,
+                50,
+                20,
+                key="k_features",
+                disabled=not enable_fs,
+            )
             if enable_fs:
                 st.info("SelectKBest uses mutual information for classification.")
                 X = df.drop(columns=[target_col])
@@ -876,8 +951,11 @@ h1, h2, h3 {{ color: #1b263b; }}
         st.header("Before and After Comparison")
         st.markdown(
             "Generate a processed dataset using current preprocessing selections.")
+        st.caption(
+            "This preview reflects your current preprocessing choices and does not alter the raw data."
+        )
 
-        if st.button("Build Processed Dataset"):
+        if st.button("Build processed dataset preview"):
             try:
                 processed_df = self.build_processed_view(df, target_col)
                 st.session_state["processed_df"] = processed_df
@@ -887,11 +965,15 @@ h1, h2, h3 {{ color: #1b263b; }}
 
         processed_df = st.session_state.get("processed_df")
         if processed_df is None:
-            st.info("Click 'Build Processed Dataset' to create the processed view.")
+            st.info("Click 'Build processed dataset preview' to create the processed view.")
             return
         csv = processed_df.to_csv(index=False).encode("utf-8")
-        st.download_button("Download Processed Dataset", csv,
-                           "processed_dataset.csv", "text/csv")
+        st.download_button(
+            "Download processed dataset (CSV)",
+            csv,
+            "processed_dataset.csv",
+            "text/csv",
+        )
 
         col1, col2 = st.columns(2)
         with col1:
@@ -1073,6 +1155,7 @@ h1, h2, h3 {{ color: #1b263b; }}
 
     def train_models_section(self, df, target_col):
         st.header("Model Training, Tuning, and Comparison")
+        st.caption("Train baselines, tune hyperparameters, and compare models with cross-validation.")
 
         if target_col not in df.columns:
             st.error("Target column not found in dataset.")
@@ -1106,20 +1189,23 @@ h1, h2, h3 {{ color: #1b263b; }}
             X = X[mask]
             y = y[mask]
 
-        cv_folds = st.slider("CV Folds", 3, 10, 5, key="cv_folds")
+        cv_folds = st.slider(
+            "Cross-validation folds (Stratified K-Fold)", 3, 10, 5, key="cv_folds"
+        )
         run_holdout = st.checkbox(
-            "Also run Train-Test Split diagnostics (optional)",
+            "Run optional 80/20 holdout for confusion matrix",
             value=False,
             key="run_holdout"
         )
         rank_metric = st.selectbox(
-            "Ranking Metric (best/worst)",
+            "Rank models by",
             ["F1 Score", "AUC", "PR AUC", "Accuracy"],
             index=0,
             key="rank_metric"
         )
         handle_imbalance = st.checkbox(
-            "Handle class imbalance (class_weight=balanced)", value=False, key="class_weight")
+            "Use class_weight='balanced' for imbalanced classes", value=False, key="class_weight"
+        )
         scoring_metric = st.session_state.get("scoring_metric", "f1")
         non_scoring_metric = st.session_state.get("non_scoring_metric", "f1")
         st.info(
@@ -1159,7 +1245,8 @@ h1, h2, h3 {{ color: #1b263b; }}
             )
 
         st.subheader("Non-ensemble Models")
-        if st.button("Run Non-ensemble Models"):
+        st.caption("Runs cross-validation with the current preprocessing pipeline.")
+        if st.button("Run non-ensemble models (CV)"):
             results = []
             cv = StratifiedKFold(
                 n_splits=cv_folds, shuffle=True, random_state=42)
@@ -1196,7 +1283,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                     st.plotly_chart(fig, width='stretch')
 
         st.subheader("Ensemble Models (Before Tuning)")
-        if st.button("Run Ensemble Models"):
+        st.caption("Baseline ensemble results before hyperparameter tuning.")
+        if st.button("Run ensemble models (CV)"):
             results = []
             cv = StratifiedKFold(
                 n_splits=cv_folds, shuffle=True, random_state=42)
@@ -1233,12 +1321,29 @@ h1, h2, h3 {{ color: #1b263b; }}
                     st.plotly_chart(fig, width='stretch')
 
         st.subheader("Hyperparameter Tuning (Non-ensemble)")
+        tuning_labels = {
+            "GridSearchCV": "Grid search (exhaustive)",
+            "RandomizedSearchCV": "Random search (faster)",
+        }
+        metric_labels = {
+            "f1": "F1 (default)",
+            "roc_auc": "ROC AUC",
+            "accuracy": "Accuracy",
+        }
         non_tuning_method = st.selectbox(
-            "Tuning Strategy (Non-ensemble)", ["GridSearchCV", "RandomizedSearchCV"], key="non_tuning_method")
+            "Tuning strategy (non-ensemble)",
+            ["GridSearchCV", "RandomizedSearchCV"],
+            key="non_tuning_method",
+            format_func=lambda key: tuning_labels.get(key, key),
+        )
         non_scoring_metric = st.selectbox(
-            "Scoring Metric (Non-ensemble)", ["f1", "roc_auc", "accuracy"], key="non_scoring_metric")
+            "Tuning metric (non-ensemble)",
+            ["f1", "roc_auc", "accuracy"],
+            key="non_scoring_metric",
+            format_func=lambda key: metric_labels.get(key, key),
+        )
 
-        if st.button("Run Non-ensemble Tuning"):
+        if st.button("Run non-ensemble tuning"):
             results = []
             tuned_models = {}
             cv = StratifiedKFold(
@@ -1300,11 +1405,19 @@ h1, h2, h3 {{ color: #1b263b; }}
 
         st.subheader("Hyperparameter Tuning (Ensemble Models)")
         tuning_method = st.selectbox(
-            "Tuning Strategy", ["GridSearchCV", "RandomizedSearchCV"], key="tuning_method")
+            "Tuning strategy (ensemble)",
+            ["GridSearchCV", "RandomizedSearchCV"],
+            key="tuning_method",
+            format_func=lambda key: tuning_labels.get(key, key),
+        )
         scoring_metric = st.selectbox(
-            "Scoring Metric", ["f1", "roc_auc", "accuracy"], key="scoring_metric")
+            "Tuning metric (ensemble)",
+            ["f1", "roc_auc", "accuracy"],
+            key="scoring_metric",
+            format_func=lambda key: metric_labels.get(key, key),
+        )
 
-        if st.button("Run Hyperparameter Tuning"):
+        if st.button("Run ensemble tuning"):
             results = []
             tuned_models = {}
             cv = StratifiedKFold(
@@ -1394,7 +1507,7 @@ h1, h2, h3 {{ color: #1b263b; }}
 
         st.subheader("Before vs After Tuning Comparison")
         compare_metric = st.selectbox(
-            "Comparison Metric",
+            "Compare by metric",
             ["F1 Score", "AUC", "PR AUC", "Accuracy"],
             index=0,
             key="compare_metric"
@@ -1477,12 +1590,12 @@ h1, h2, h3 {{ color: #1b263b; }}
             model_names = list(tuned_models.keys())
             default_models = model_names[:3]
             selected_models = st.multiselect(
-                "Select Models (Model4/5/6)",
+                "Select models for feature importance",
                 model_names,
                 default=default_models,
                 key="fi_models"
             )
-            top_n = st.slider("Top Features", 5, 30, 20, key="fi_top_n")
+            top_n = st.slider("Top features to show", 5, 30, 20, key="fi_top_n")
 
             if not selected_models:
                 st.info("Select at least one model to view feature importance.")
@@ -1509,8 +1622,11 @@ h1, h2, h3 {{ color: #1b263b; }}
             st.info("SHAP is not available in this environment.")
         else:
             if tuned_models:
-                shap_model_name = st.selectbox("Select Model for SHAP", list(
-                    tuned_models.keys()), key="shap_model")
+                shap_model_name = st.selectbox(
+                    "Model for SHAP analysis",
+                    list(tuned_models.keys()),
+                    key="shap_model",
+                )
                 col_a, col_b = st.columns(2)
                 with col_a:
                     max_sample = min(1000, len(X))
@@ -1518,11 +1634,16 @@ h1, h2, h3 {{ color: #1b263b; }}
                     default_sample = min(200, max_sample)
                     step_size = 10 if max_sample < 100 else 50
                     sample_size = st.slider(
-                        "SHAP sample size", min_sample, max_sample, default_sample, step=step_size)
+                        "SHAP sample size (rows)",
+                        min_sample,
+                        max_sample,
+                        default_sample,
+                        step=step_size,
+                    )
                 with col_b:
                     max_display = st.slider(
                         "Max features to display", 5, 30, 20)
-                if st.button("Run SHAP Summary"):
+                if st.button("Run SHAP summary"):
                     model_pipeline = tuned_models[shap_model_name]
                     X_sample = X.sample(
                         min(sample_size, len(X)), random_state=42)
@@ -1606,13 +1727,13 @@ beeswarm_fig, bar_fig = dashboard.build_shap_summary_plotly(
 
         st.subheader("Results Export")
         self.download_results(st.session_state.get(
-            "non_ensemble_results"), "Download Non-ensemble Results", "non_ensemble_results.csv")
+            "non_ensemble_results"), "Download non-ensemble results (CSV)", "non_ensemble_results.csv")
         self.download_results(st.session_state.get(
-            "ensemble_results"), "Download Ensemble Results", "ensemble_results.csv")
+            "ensemble_results"), "Download ensemble results (CSV)", "ensemble_results.csv")
         self.download_results(st.session_state.get("tuned_non_ensemble_results"),
-                              "Download Tuned Non-ensemble Results", "tuned_non_ensemble_results.csv")
+                              "Download tuned non-ensemble results (CSV)", "tuned_non_ensemble_results.csv")
         self.download_results(st.session_state.get("tuned_ensemble_results"),
-                              "Download Tuned Ensemble Results", "tuned_ensemble_results.csv")
+                              "Download tuned ensemble results (CSV)", "tuned_ensemble_results.csv")
 
     def run(self):
         st.title("Heart Disease Analysis Dashboard")
