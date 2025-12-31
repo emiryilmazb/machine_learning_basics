@@ -1697,15 +1697,45 @@ h1, h2, h3 {{ color: #1b263b; }}
                                 feature_names = feature_names[support]
 
                             if hasattr(model, "predict_proba"):
-                                try:
-                                    explainer = shap.Explainer(
-                                        model, X_transformed, feature_names=feature_names)
-                                    shap_values = explainer(X_transformed)
-                                except Exception:
+                                if hasattr(X_transformed, "toarray"):
+                                    X_array = X_transformed.toarray()
+                                else:
+                                    X_array = np.asarray(X_transformed)
+
+                                shap_values = None
+                                use_kernel = isinstance(model, AdaBoostClassifier)
+                                if not use_kernel:
                                     try:
-                                        explainer = shap.TreeExplainer(model)
+                                        explainer = shap.Explainer(
+                                            model, X_array, feature_names=feature_names)
+                                        shap_values = explainer(X_array)
+                                    except Exception:
+                                        try:
+                                            explainer = shap.TreeExplainer(model)
+                                            shap_values = explainer.shap_values(
+                                                X_array)
+                                        except Exception:
+                                            shap_values = None
+
+                                if shap_values is None:
+                                    try:
+                                        rng = np.random.default_rng(42)
+                                        background_size = min(50, len(X_array))
+                                        background_idx = rng.choice(
+                                            len(X_array), size=background_size, replace=False)
+                                        background = X_array[background_idx]
+
+                                        def predict_fn(data):
+                                            proba = model.predict_proba(data)
+                                            if proba.ndim == 2 and proba.shape[1] > 1:
+                                                return proba[:, 1]
+                                            return proba
+
+                                        explainer = shap.KernelExplainer(
+                                            predict_fn, background)
                                         shap_values = explainer.shap_values(
-                                            X_transformed)
+                                            X_array, nsamples=100
+                                        )
                                     except Exception as exc:
                                         st.warning(f"SHAP failed: {exc}")
                                         shap_values = None
@@ -1717,7 +1747,7 @@ h1, h2, h3 {{ color: #1b263b; }}
                         if shap_values is not None:
                             beeswarm_fig, bar_fig = self.build_shap_summary_plotly(
                                 shap_values,
-                                X_transformed,
+                                X_array,
                                 feature_names,
                                 max_display=max_display,
                                 class_index=1
@@ -1733,7 +1763,8 @@ h1, h2, h3 {{ color: #1b263b; }}
                 with st.expander("SHAP Code Snippet"):
                     st.code(
                         """
-from shap import Explainer
+from shap import Explainer, KernelExplainer
+from sklearn.ensemble import AdaBoostClassifier
 
 model_pipeline.fit(X, y)
 model = model_pipeline.named_steps["model"]
@@ -1746,8 +1777,15 @@ if "selector" in model_pipeline.named_steps:
     X_transformed = selector.transform(X_transformed)
     feature_names = feature_names[support]
 
-explainer = Explainer(model, X_transformed, feature_names=feature_names)
-shap_values = explainer(X_transformed)
+if isinstance(model, AdaBoostClassifier):
+    background = X_transformed[:50]
+    def predict_fn(data):
+        return model.predict_proba(data)[:, 1]
+    explainer = KernelExplainer(predict_fn, background)
+    shap_values = explainer.shap_values(X_transformed, nsamples=100)
+else:
+    explainer = Explainer(model, X_transformed, feature_names=feature_names)
+    shap_values = explainer(X_transformed)
 """,
                         language="python"
                     )
