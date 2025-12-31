@@ -931,6 +931,7 @@ h1, h2, h3 {{ color: #1b263b; }}
         results_df = pd.DataFrame(results)
         st.dataframe(results_df, width='stretch')
 
+        plot_df = results_df.copy()
         if plot_metrics is not None:
             numeric_cols = [c for c in plot_metrics if c in results_df.columns]
         else:
@@ -939,10 +940,21 @@ h1, h2, h3 {{ color: #1b263b; }}
         if not numeric_cols:
             return
 
-        chart_df = results_df[["Model"] + numeric_cols]
+        model_col = "Model"
+        if "Model" in plot_df.columns and plot_df["Model"].duplicated().any():
+            if "Best Params" in plot_df.columns:
+                tuned_mask = plot_df["Best Params"].notna()
+                variant = np.where(tuned_mask, "Tuned", "Baseline")
+                plot_df["Model Label"] = plot_df["Model"] + " (" + variant + ")"
+            else:
+                run_count = plot_df.groupby("Model").cumcount() + 1
+                plot_df["Model Label"] = plot_df["Model"] + " (Run " + run_count.astype(str) + ")"
+            model_col = "Model Label"
+
+        chart_df = plot_df[[model_col] + numeric_cols]
         melted = chart_df.melt(
-            id_vars="Model", var_name="Metric", value_name="Score")
-        fig = px.bar(melted, x="Model", y="Score", color="Metric",
+            id_vars=model_col, var_name="Metric", value_name="Score")
+        fig = px.bar(melted, x=model_col, y="Score", color="Metric",
                      barmode="group", text_auto=".3f")
         fig.update_yaxes(range=[0, 1.05])
         st.plotly_chart(fig, width='stretch')
@@ -1161,20 +1173,29 @@ h1, h2, h3 {{ color: #1b263b; }}
             st.error("Target column not found in dataset.")
             return
 
-        st.subheader("Model Descriptions")
-        st.markdown(
-            """
-**Dummy (Most Frequent)**: Baseline classifier that predicts the most common class; useful to set a minimum bar.\n
-**Logistic Regression**: Linear model with a sigmoid function; fast, interpretable, and a strong baseline for binary tasks.\n
-**SVM (RBF)**: Finds a maximum-margin decision boundary with non-linear kernels; strong for complex boundaries but can be slower.\n
-**KNN**: Classifies based on nearest neighbors; simple and flexible but sensitive to scaling and noise.\n
-**Decision Tree**: Rule-based splits for interpretability; can overfit without constraints.\n
-**Random Forest**: Bagged ensemble of trees to reduce variance; robust and handles non-linearities well.\n
-**Gradient Boosting**: Sequentially builds trees to correct errors; often high accuracy but sensitive to tuning.\n
-**AdaBoost**: Boosts weak learners with reweighting; can perform well on clean data but sensitive to noise.\n
-**XGBoost**: Optimized gradient boosting; strong performance with regularization and efficient training.\n
+        with st.expander("Model descriptions", expanded=False):
+            st.markdown(
+                """
+**Dummy (Most Frequent)**: Baseline classifier that predicts the most common class; useful to set a minimum bar.
+
+**Logistic Regression**: Linear model with a sigmoid function; fast, interpretable, and a strong baseline for binary tasks.
+
+**SVM (RBF)**: Finds a maximum-margin decision boundary with non-linear kernels; strong for complex boundaries but can be slower.
+
+**KNN**: Classifies based on nearest neighbors; simple and flexible but sensitive to scaling and noise.
+
+**Decision Tree**: Rule-based splits for interpretability; can overfit without constraints.
+
+**Random Forest**: Bagged ensemble of trees to reduce variance; robust and handles non-linearities well.
+
+**Gradient Boosting**: Sequentially builds trees to correct errors; often high accuracy but sensitive to tuning.
+
+**AdaBoost**: Boosts weak learners with reweighting; can perform well on clean data but sensitive to noise.
+
+**XGBoost**: Optimized gradient boosting; strong performance with regularization and efficient training.
+
 """
-        )
+            )
 
         X = df.drop(columns=[target_col])
         y = df[target_col]
@@ -1189,34 +1210,35 @@ h1, h2, h3 {{ color: #1b263b; }}
             X = X[mask]
             y = y[mask]
 
-        cv_folds = st.slider(
-            "Cross-validation folds (Stratified K-Fold)", 3, 10, 5, key="cv_folds"
-        )
-        run_holdout = st.checkbox(
-            "Run optional 80/20 holdout for confusion matrix",
-            value=False,
-            key="run_holdout"
-        )
-        rank_metric = st.selectbox(
-            "Rank models by",
-            ["F1 Score", "AUC", "PR AUC", "Accuracy"],
-            index=0,
-            key="rank_metric"
-        )
-        handle_imbalance = st.checkbox(
-            "Use class_weight='balanced' for imbalanced classes", value=False, key="class_weight"
-        )
-        scoring_metric = st.session_state.get("scoring_metric", "f1")
-        non_scoring_metric = st.session_state.get("non_scoring_metric", "f1")
-        st.info(
-            f"Cross-Validation Settings: "
-            f"Technique=Stratified K-Fold CV, "
-            f"Folds={cv_folds}, "
-            f"Scoring (tuning)={non_scoring_metric} / {scoring_metric}"
-        )
-        if run_holdout:
+        with st.expander("Modeling settings", expanded=True):
+            col_a, col_b = st.columns(2)
+            with col_a:
+                cv_folds = st.slider(
+                    "Cross-validation folds (Stratified K-Fold)", 3, 10, 5, key="cv_folds"
+                )
+                rank_metric = st.selectbox(
+                    "Rank models by",
+                    ["F1 Score", "AUC", "PR AUC", "Accuracy"],
+                    index=0,
+                    key="rank_metric"
+                )
+            with col_b:
+                handle_imbalance = st.checkbox(
+                    "Use class_weight='balanced' for imbalanced classes",
+                    value=False,
+                    key="class_weight"
+                )
+                run_holdout = st.checkbox(
+                    "Run optional 80/20 holdout for confusion matrix",
+                    value=False,
+                    key="run_holdout"
+                )
             st.caption(
-                "Holdout diagnostics use an 80/20 stratified split for confusion matrix only.")
+                f"CV: Stratified K-Fold, {cv_folds} folds. Ranking metric: {rank_metric}."
+            )
+            if run_holdout:
+                st.caption(
+                    "Holdout diagnostics use an 80/20 stratified split for confusion matrix only.")
 
         class_weight = "balanced" if handle_imbalance else None
         if handle_imbalance and y.nunique() == 2:
@@ -1244,459 +1266,473 @@ h1, h2, h3 {{ color: #1b263b; }}
                 eval_metric="logloss", random_state=42, scale_pos_weight=scale_pos_weight
             )
 
-        st.subheader("Non-ensemble Models")
-        st.caption("Runs cross-validation with the current preprocessing pipeline.")
-        if st.button("Run non-ensemble models (CV)"):
-            results = []
-            cv = StratifiedKFold(
-                n_splits=cv_folds, shuffle=True, random_state=42)
-            for name, model in non_ensemble_models.items():
-                pipeline = self.build_pipeline(model, df, target_col)
-                metrics = self.evaluate_cv(pipeline, X, y, cv)
-                metrics["Model"] = name
-                results.append(metrics)
-
-            self.display_results(results, plot_metrics=[
-                                 "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
-            st.session_state["non_ensemble_results"] = results
-
-            summary = self.summarize_results(results, rank_metric)
-            if summary:
-                st.subheader("Auto Discussion (Non-ensemble)")
-                st.markdown(
-                    f"- Best model: **{summary['best']}**\n"
-                    f"- Worst model: **{summary['worst']}**\n"
-                    + "\n".join([f"- {n}" for n in summary["notes"]])
-                )
-
-                if run_holdout and summary["best"] in non_ensemble_models:
-                    st.subheader("Best Model Confusion Matrix (Holdout)")
-                    X_train, X_test, y_train, y_test = train_test_split(
-                        X, y, test_size=0.2, random_state=42, stratify=y
-                    )
-                    pipeline = self.build_pipeline(
-                        non_ensemble_models[summary["best"]], df, target_col)
-                    _, _, _, cm = self.evaluate_train_test(
-                        pipeline, X_train, X_test, y_train, y_test)
-                    fig = px.imshow(cm, text_auto=True,
-                                    color_continuous_scale="Blues")
-                    st.plotly_chart(fig, width='stretch')
-
-        st.subheader("Ensemble Models (Before Tuning)")
-        st.caption("Baseline ensemble results before hyperparameter tuning.")
-        if st.button("Run ensemble models (CV)"):
-            results = []
-            cv = StratifiedKFold(
-                n_splits=cv_folds, shuffle=True, random_state=42)
-            for name, model in ensemble_models.items():
-                pipeline = self.build_pipeline(model, df, target_col)
-                metrics = self.evaluate_cv(pipeline, X, y, cv)
-                metrics["Model"] = name
-                results.append(metrics)
-
-            self.display_results(results, plot_metrics=[
-                                 "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
-            st.session_state["ensemble_results"] = results
-
-            summary = self.summarize_results(results, rank_metric)
-            if summary:
-                st.subheader("Auto Discussion (Ensemble)")
-                st.markdown(
-                    f"- Best model: **{summary['best']}**\n"
-                    f"- Worst model: **{summary['worst']}**\n"
-                    + "\n".join([f"- {n}" for n in summary["notes"]])
-                )
-
-                if run_holdout and summary["best"] in ensemble_models:
-                    st.subheader("Best Model Confusion Matrix (Holdout)")
-                    X_train, X_test, y_train, y_test = train_test_split(
-                        X, y, test_size=0.2, random_state=42, stratify=y
-                    )
-                    pipeline = self.build_pipeline(
-                        ensemble_models[summary["best"]], df, target_col)
-                    _, _, _, cm = self.evaluate_train_test(
-                        pipeline, X_train, X_test, y_train, y_test)
-                    fig = px.imshow(cm, text_auto=True,
-                                    color_continuous_scale="Blues")
-                    st.plotly_chart(fig, width='stretch')
-
-        st.subheader("Hyperparameter Tuning (Non-ensemble)")
-        tuning_labels = {
-            "GridSearchCV": "Grid search (exhaustive)",
-            "RandomizedSearchCV": "Random search (faster)",
-        }
-        metric_labels = {
-            "f1": "F1 (default)",
-            "roc_auc": "ROC AUC",
-            "accuracy": "Accuracy",
-        }
-        non_tuning_method = st.selectbox(
-            "Tuning strategy (non-ensemble)",
-            ["GridSearchCV", "RandomizedSearchCV"],
-            key="non_tuning_method",
-            format_func=lambda key: tuning_labels.get(key, key),
-        )
-        non_scoring_metric = st.selectbox(
-            "Tuning metric (non-ensemble)",
-            ["f1", "roc_auc", "accuracy"],
-            key="non_scoring_metric",
-            format_func=lambda key: metric_labels.get(key, key),
+        train_tab, tune_tab, compare_tab, explain_tab, export_tab = st.tabs(
+            ["1) Train", "2) Tune", "3) Compare", "4) Explain", "5) Export"]
         )
 
-        if st.button("Run non-ensemble tuning"):
-            results = []
-            tuned_models = {}
-            cv = StratifiedKFold(
-                n_splits=cv_folds, shuffle=True, random_state=42)
+        with train_tab:
+            st.subheader("Baselines (Non-ensemble)")
+            st.caption("Runs cross-validation with the current preprocessing pipeline.")
+            if st.button("Run non-ensemble models (CV)"):
+                results = []
+                cv = StratifiedKFold(
+                    n_splits=cv_folds, shuffle=True, random_state=42)
+                for name, model in non_ensemble_models.items():
+                    pipeline = self.build_pipeline(model, df, target_col)
+                    metrics = self.evaluate_cv(pipeline, X, y, cv)
+                    metrics["Model"] = name
+                    results.append(metrics)
 
-            param_grids = {
-                "Logistic Regression": {
-                    "model__C": [0.1, 1, 10],
-                    "model__solver": ["lbfgs", "liblinear"],
-                },
-                "SVM (RBF)": {
-                    "model__C": [0.1, 1, 10],
-                    "model__gamma": ["scale", "auto"],
-                },
-                "KNN": {
-                    "model__n_neighbors": [3, 5, 7, 11],
-                    "model__weights": ["uniform", "distance"],
-                },
-                "Decision Tree": {
-                    "model__max_depth": [None, 3, 5, 10],
-                    "model__min_samples_split": [2, 5, 10],
-                    "model__criterion": ["gini", "entropy"],
-                },
-            }
-
-            for name, model in non_ensemble_models.items():
-                if name.startswith("Dummy"):
-                    continue
-                pipeline = self.build_pipeline(model, df, target_col)
-                params = param_grids.get(name, {})
-                if non_tuning_method == "GridSearchCV":
-                    search = GridSearchCV(
-                        pipeline, params, cv=cv, scoring=non_scoring_metric, n_jobs=-1)
-                else:
-                    search = RandomizedSearchCV(
-                        pipeline, params, cv=cv, scoring=non_scoring_metric, n_jobs=-1, n_iter=10, random_state=42
-                    )
-
-                search.fit(X, y)
-                tuned_models[name] = search.best_estimator_
-
-                metrics = self.evaluate_cv(search.best_estimator_, X, y, cv)
-                metrics["Model"] = name
-                metrics["Best Params"] = str(search.best_params_)
-                results.append(metrics)
-
-            self.display_results(results, plot_metrics=[
-                                 "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
-            st.session_state["tuned_non_ensemble_results"] = results
-            st.session_state["tuned_non_ensemble_models"] = tuned_models
-            summary = self.summarize_results(results, rank_metric)
-            if summary:
-                st.subheader("Auto Discussion (Tuned Non-ensemble)")
-                st.markdown(
-                    f"- Best model: **{summary['best']}**\n"
-                    f"- Worst model: **{summary['worst']}**\n"
-                    + "\n".join([f"- {n}" for n in summary["notes"]])
-                )
-
-        st.subheader("Hyperparameter Tuning (Ensemble Models)")
-        tuning_method = st.selectbox(
-            "Tuning strategy (ensemble)",
-            ["GridSearchCV", "RandomizedSearchCV"],
-            key="tuning_method",
-            format_func=lambda key: tuning_labels.get(key, key),
-        )
-        scoring_metric = st.selectbox(
-            "Tuning metric (ensemble)",
-            ["f1", "roc_auc", "accuracy"],
-            key="scoring_metric",
-            format_func=lambda key: metric_labels.get(key, key),
-        )
-
-        if st.button("Run ensemble tuning"):
-            results = []
-            tuned_models = {}
-            cv = StratifiedKFold(
-                n_splits=cv_folds, shuffle=True, random_state=42)
-
-            param_grids = {
-                "Random Forest": {
-                    "model__n_estimators": [100, 200, 400],
-                    "model__max_depth": [None, 5, 10],
-                    "model__min_samples_split": [2, 5, 10],
-                },
-                "Gradient Boosting": {
-                    "model__n_estimators": [100, 200, 300],
-                    "model__learning_rate": [0.05, 0.1, 0.2],
-                    "model__max_depth": [2, 3, 4],
-                },
-                "AdaBoost": {
-                    "model__n_estimators": [50, 100, 200],
-                    "model__learning_rate": [0.5, 1.0, 1.5],
-                },
-            }
-            if XGBOOST_AVAILABLE:
-                param_grids["XGBoost"] = {
-                    "model__n_estimators": [200, 400],
-                    "model__max_depth": [3, 5],
-                    "model__learning_rate": [0.05, 0.1],
-                    "model__subsample": [0.8, 1.0],
-                    "model__colsample_bytree": [0.8, 1.0],
-                }
-
-            for name, model in ensemble_models.items():
-                pipeline = self.build_pipeline(model, df, target_col)
-                params = param_grids.get(name, {})
-                if tuning_method == "GridSearchCV":
-                    search = GridSearchCV(
-                        pipeline, params, cv=cv, scoring=scoring_metric, n_jobs=-1)
-                else:
-                    search = RandomizedSearchCV(
-                        pipeline, params, cv=cv, scoring=scoring_metric, n_jobs=-1, n_iter=10, random_state=42
-                    )
-
-                search.fit(X, y)
-                tuned_models[name] = search.best_estimator_
-
-                metrics = self.evaluate_cv(search.best_estimator_, X, y, cv)
-                metrics["Model"] = name
-                metrics["Best Params"] = str(search.best_params_)
-                results.append(metrics)
-
-            self.display_results(results, plot_metrics=[
-                                 "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
-            st.session_state["tuned_ensemble_results"] = results
-            st.session_state["tuned_models"] = tuned_models
-
-            summary = self.summarize_results(results, rank_metric)
-            if summary:
-                st.subheader("Auto Discussion (Tuned Ensemble)")
-                st.markdown(
-                    f"- Best model: **{summary['best']}**\n"
-                    f"- Worst model: **{summary['worst']}**\n"
-                    + "\n".join([f"- {n}" for n in summary["notes"]])
-                )
-
-        st.subheader("Overall Comparison (All Models)")
-        if st.button("Build Overall Comparison"):
-            combined = []
-            combined.extend(st.session_state.get("non_ensemble_results", []))
-            combined.extend(st.session_state.get("ensemble_results", []))
-            combined.extend(st.session_state.get(
-                "tuned_non_ensemble_results", []))
-            combined.extend(st.session_state.get("tuned_ensemble_results", []))
-
-            if combined:
-                self.display_results(combined, plot_metrics=[
+                self.display_results(results, plot_metrics=[
                                      "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
-                summary = self.summarize_results(combined, rank_metric)
+                st.session_state["non_ensemble_results"] = results
+
+                summary = self.summarize_results(results, rank_metric)
                 if summary:
-                    st.subheader("Auto Discussion (Overall)")
+                    st.subheader("Auto Discussion (Non-ensemble)")
                     st.markdown(
                         f"- Best model: **{summary['best']}**\n"
                         f"- Worst model: **{summary['worst']}**\n"
                         + "\n".join([f"- {n}" for n in summary["notes"]])
                     )
-            else:
-                st.info(
-                    "Run at least one modeling step first to build overall comparison.")
 
-        st.subheader("Before vs After Tuning Comparison")
-        compare_metric = st.selectbox(
-            "Compare by metric",
-            ["F1 Score", "AUC", "PR AUC", "Accuracy"],
-            index=0,
-            key="compare_metric"
-        )
+                    if run_holdout and summary["best"] in non_ensemble_models:
+                        st.subheader("Best Model Confusion Matrix (Holdout)")
+                        X_train, X_test, y_train, y_test = train_test_split(
+                            X, y, test_size=0.2, random_state=42, stratify=y
+                        )
+                        pipeline = self.build_pipeline(
+                            non_ensemble_models[summary["best"]], df, target_col)
+                        _, _, _, cm = self.evaluate_train_test(
+                            pipeline, X_train, X_test, y_train, y_test)
+                        fig = px.imshow(cm, text_auto=True,
+                                        color_continuous_scale="Blues")
+                        st.plotly_chart(fig, width='stretch')
 
-        def build_comparison(before, after, metric):
-            if not before or not after:
-                return None
-            before_df = pd.DataFrame(before)[["Model", metric]].rename(
-                columns={metric: "Before"})
-            after_df = pd.DataFrame(after)[["Model", metric]].rename(
-                columns={metric: "After"})
-            merged = before_df.merge(after_df, on="Model", how="inner")
-            merged["Improvement"] = merged["After"] - merged["Before"]
-            return merged.sort_values(by="Improvement", ascending=False)
+            st.markdown("---")
+            st.subheader("Baselines (Ensemble)")
+            st.caption("Baseline ensemble results before hyperparameter tuning.")
+            if st.button("Run ensemble models (CV)"):
+                results = []
+                cv = StratifiedKFold(
+                    n_splits=cv_folds, shuffle=True, random_state=42)
+                for name, model in ensemble_models.items():
+                    pipeline = self.build_pipeline(model, df, target_col)
+                    metrics = self.evaluate_cv(pipeline, X, y, cv)
+                    metrics["Model"] = name
+                    results.append(metrics)
 
-        if st.button("Compare Non-ensemble Before/After"):
-            comparison = build_comparison(
+                self.display_results(results, plot_metrics=[
+                                     "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
+                st.session_state["ensemble_results"] = results
+
+                summary = self.summarize_results(results, rank_metric)
+                if summary:
+                    st.subheader("Auto Discussion (Ensemble)")
+                    st.markdown(
+                        f"- Best model: **{summary['best']}**\n"
+                        f"- Worst model: **{summary['worst']}**\n"
+                        + "\n".join([f"- {n}" for n in summary["notes"]])
+                    )
+
+                    if run_holdout and summary["best"] in ensemble_models:
+                        st.subheader("Best Model Confusion Matrix (Holdout)")
+                        X_train, X_test, y_train, y_test = train_test_split(
+                            X, y, test_size=0.2, random_state=42, stratify=y
+                        )
+                        pipeline = self.build_pipeline(
+                            ensemble_models[summary["best"]], df, target_col)
+                        _, _, _, cm = self.evaluate_train_test(
+                            pipeline, X_train, X_test, y_train, y_test)
+                        fig = px.imshow(cm, text_auto=True,
+                                        color_continuous_scale="Blues")
+                        st.plotly_chart(fig, width='stretch')
+
+        with tune_tab:
+            st.caption(f"Uses Stratified K-Fold CV with {cv_folds} folds.")
+            st.subheader("Hyperparameter Tuning (Non-ensemble)")
+            tuning_labels = {
+                "GridSearchCV": "Grid search (exhaustive)",
+                "RandomizedSearchCV": "Random search (faster)",
+            }
+            metric_labels = {
+                "f1": "F1 (default)",
+                "roc_auc": "ROC AUC",
+                "accuracy": "Accuracy",
+            }
+            non_tuning_method = st.selectbox(
+                "Tuning strategy (non-ensemble)",
+                ["GridSearchCV", "RandomizedSearchCV"],
+                key="non_tuning_method",
+                format_func=lambda key: tuning_labels.get(key, key),
+            )
+            non_scoring_metric = st.selectbox(
+                "Tuning metric (non-ensemble)",
+                ["f1", "roc_auc", "accuracy"],
+                key="non_scoring_metric",
+                format_func=lambda key: metric_labels.get(key, key),
+            )
+
+            if st.button("Run non-ensemble tuning"):
+                results = []
+                tuned_models = {}
+                cv = StratifiedKFold(
+                    n_splits=cv_folds, shuffle=True, random_state=42)
+
+                param_grids = {
+                    "Logistic Regression": {
+                        "model__C": [0.1, 1, 10],
+                        "model__solver": ["lbfgs", "liblinear"],
+                    },
+                    "SVM (RBF)": {
+                        "model__C": [0.1, 1, 10],
+                        "model__gamma": ["scale", "auto"],
+                    },
+                    "KNN": {
+                        "model__n_neighbors": [3, 5, 7, 11],
+                        "model__weights": ["uniform", "distance"],
+                    },
+                    "Decision Tree": {
+                        "model__max_depth": [None, 3, 5, 10],
+                        "model__min_samples_split": [2, 5, 10],
+                        "model__criterion": ["gini", "entropy"],
+                    },
+                }
+
+                for name, model in non_ensemble_models.items():
+                    if name.startswith("Dummy"):
+                        continue
+                    pipeline = self.build_pipeline(model, df, target_col)
+                    params = param_grids.get(name, {})
+                    if non_tuning_method == "GridSearchCV":
+                        search = GridSearchCV(
+                            pipeline, params, cv=cv, scoring=non_scoring_metric, n_jobs=-1)
+                    else:
+                        search = RandomizedSearchCV(
+                            pipeline, params, cv=cv, scoring=non_scoring_metric, n_jobs=-1, n_iter=10, random_state=42
+                        )
+
+                    search.fit(X, y)
+                    tuned_models[name] = search.best_estimator_
+
+                    metrics = self.evaluate_cv(search.best_estimator_, X, y, cv)
+                    metrics["Model"] = name
+                    metrics["Best Params"] = str(search.best_params_)
+                    results.append(metrics)
+
+                self.display_results(results, plot_metrics=[
+                                     "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
+                st.session_state["tuned_non_ensemble_results"] = results
+                st.session_state["tuned_non_ensemble_models"] = tuned_models
+                summary = self.summarize_results(results, rank_metric)
+                if summary:
+                    st.subheader("Auto Discussion (Tuned Non-ensemble)")
+                    st.markdown(
+                        f"- Best model: **{summary['best']}**\n"
+                        f"- Worst model: **{summary['worst']}**\n"
+                        + "\n".join([f"- {n}" for n in summary["notes"]])
+                    )
+
+            st.markdown("---")
+            st.subheader("Hyperparameter Tuning (Ensemble Models)")
+            tuning_method = st.selectbox(
+                "Tuning strategy (ensemble)",
+                ["GridSearchCV", "RandomizedSearchCV"],
+                key="tuning_method",
+                format_func=lambda key: tuning_labels.get(key, key),
+            )
+            scoring_metric = st.selectbox(
+                "Tuning metric (ensemble)",
+                ["f1", "roc_auc", "accuracy"],
+                key="scoring_metric",
+                format_func=lambda key: metric_labels.get(key, key),
+            )
+
+            if st.button("Run ensemble tuning"):
+                results = []
+                tuned_models = {}
+                cv = StratifiedKFold(
+                    n_splits=cv_folds, shuffle=True, random_state=42)
+
+                param_grids = {
+                    "Random Forest": {
+                        "model__n_estimators": [100, 200, 400],
+                        "model__max_depth": [None, 5, 10],
+                        "model__min_samples_split": [2, 5, 10],
+                    },
+                    "Gradient Boosting": {
+                        "model__n_estimators": [100, 200, 300],
+                        "model__learning_rate": [0.05, 0.1, 0.2],
+                        "model__max_depth": [2, 3, 4],
+                    },
+                    "AdaBoost": {
+                        "model__n_estimators": [50, 100, 200],
+                        "model__learning_rate": [0.5, 1.0, 1.5],
+                    },
+                }
+                if XGBOOST_AVAILABLE:
+                    param_grids["XGBoost"] = {
+                        "model__n_estimators": [200, 400],
+                        "model__max_depth": [3, 5],
+                        "model__learning_rate": [0.05, 0.1],
+                        "model__subsample": [0.8, 1.0],
+                        "model__colsample_bytree": [0.8, 1.0],
+                    }
+
+                for name, model in ensemble_models.items():
+                    pipeline = self.build_pipeline(model, df, target_col)
+                    params = param_grids.get(name, {})
+                    if tuning_method == "GridSearchCV":
+                        search = GridSearchCV(
+                            pipeline, params, cv=cv, scoring=scoring_metric, n_jobs=-1)
+                    else:
+                        search = RandomizedSearchCV(
+                            pipeline, params, cv=cv, scoring=scoring_metric, n_jobs=-1, n_iter=10, random_state=42
+                        )
+
+                    search.fit(X, y)
+                    tuned_models[name] = search.best_estimator_
+
+                    metrics = self.evaluate_cv(search.best_estimator_, X, y, cv)
+                    metrics["Model"] = name
+                    metrics["Best Params"] = str(search.best_params_)
+                    results.append(metrics)
+
+                self.display_results(results, plot_metrics=[
+                                     "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
+                st.session_state["tuned_ensemble_results"] = results
+                st.session_state["tuned_models"] = tuned_models
+
+                summary = self.summarize_results(results, rank_metric)
+                if summary:
+                    st.subheader("Auto Discussion (Tuned Ensemble)")
+                    st.markdown(
+                        f"- Best model: **{summary['best']}**\n"
+                        f"- Worst model: **{summary['worst']}**\n"
+                        + "\n".join([f"- {n}" for n in summary["notes"]])
+                    )
+
+        with compare_tab:
+            st.subheader("Overall Comparison (All Models)")
+            if st.button("Build Overall Comparison"):
+                combined = []
+                combined.extend(st.session_state.get("non_ensemble_results", []))
+                combined.extend(st.session_state.get("ensemble_results", []))
+                combined.extend(st.session_state.get(
+                    "tuned_non_ensemble_results", []))
+                combined.extend(st.session_state.get("tuned_ensemble_results", []))
+
+                if combined:
+                    self.display_results(combined, plot_metrics=[
+                                         "Accuracy", "Precision", "Recall", "F1 Score", "AUC", "PR AUC"])
+                    summary = self.summarize_results(combined, rank_metric)
+                    if summary:
+                        st.subheader("Auto Discussion (Overall)")
+                        st.markdown(
+                            f"- Best model: **{summary['best']}**\n"
+                            f"- Worst model: **{summary['worst']}**\n"
+                            + "\n".join([f"- {n}" for n in summary["notes"]])
+                        )
+                else:
+                    st.info(
+                        "Run at least one modeling step first to build overall comparison.")
+
+            st.markdown("---")
+            st.subheader("Before vs After Tuning Comparison")
+            compare_metric = st.selectbox(
+                "Compare by metric",
+                ["F1 Score", "AUC", "PR AUC", "Accuracy"],
+                index=0,
+                key="compare_metric"
+            )
+
+            def build_comparison(before, after, metric):
+                if not before or not after:
+                    return None
+                before_df = pd.DataFrame(before)[["Model", metric]].rename(
+                    columns={metric: "Before"})
+                after_df = pd.DataFrame(after)[["Model", metric]].rename(
+                    columns={metric: "After"})
+                merged = before_df.merge(after_df, on="Model", how="inner")
+                merged["Improvement"] = merged["After"] - merged["Before"]
+                return merged.sort_values(by="Improvement", ascending=False)
+
+            if st.button("Compare Non-ensemble Before/After"):
+                comparison = build_comparison(
+                    st.session_state.get("non_ensemble_results", []),
+                    st.session_state.get("tuned_non_ensemble_results", []),
+                    compare_metric,
+                )
+                if comparison is not None:
+                    st.dataframe(comparison, width='stretch')
+                else:
+                    st.info("Run non-ensemble models and tuning first.")
+
+            if st.button("Compare Ensemble Before/After"):
+                comparison = build_comparison(
+                    st.session_state.get("ensemble_results", []),
+                    st.session_state.get("tuned_ensemble_results", []),
+                    compare_metric,
+                )
+                if comparison is not None:
+                    st.dataframe(comparison, width='stretch')
+                else:
+                    st.info("Run ensemble models and tuning first.")
+
+            st.markdown("---")
+            st.subheader("Before vs After Tuning Tables")
+            metric_cols = ["Accuracy", "Precision",
+                           "Recall", "F1 Score", "AUC", "PR AUC"]
+
+            def build_before_after_table(before, after):
+                if not before or not after:
+                    return None
+                before_df = pd.DataFrame(before)[["Model"] + metric_cols]
+                after_df = pd.DataFrame(after)[["Model"] + metric_cols]
+                merged = before_df.merge(
+                    after_df,
+                    on="Model",
+                    how="inner",
+                    suffixes=(" (Before)", " (After)")
+                )
+                return merged
+
+            non_table = build_before_after_table(
                 st.session_state.get("non_ensemble_results", []),
                 st.session_state.get("tuned_non_ensemble_results", []),
-                compare_metric,
             )
-            if comparison is not None:
-                st.dataframe(comparison, width='stretch')
+            if non_table is not None:
+                st.markdown("**Non-ensemble Models**")
+                st.dataframe(non_table, width='stretch')
             else:
-                st.info("Run non-ensemble models and tuning first.")
+                st.info(
+                    "Run non-ensemble models and tuning to build the before/after table.")
 
-        if st.button("Compare Ensemble Before/After"):
-            comparison = build_comparison(
+            ens_table = build_before_after_table(
                 st.session_state.get("ensemble_results", []),
                 st.session_state.get("tuned_ensemble_results", []),
-                compare_metric,
             )
-            if comparison is not None:
-                st.dataframe(comparison, width='stretch')
+            if ens_table is not None:
+                st.markdown("**Ensemble Models**")
+                st.dataframe(ens_table, width='stretch')
             else:
-                st.info("Run ensemble models and tuning first.")
+                st.info("Run ensemble models and tuning to build the before/after table.")
 
-        st.subheader("Before vs After Tuning Tables")
-        metric_cols = ["Accuracy", "Precision",
-                       "Recall", "F1 Score", "AUC", "PR AUC"]
-
-        def build_before_after_table(before, after):
-            if not before or not after:
-                return None
-            before_df = pd.DataFrame(before)[["Model"] + metric_cols]
-            after_df = pd.DataFrame(after)[["Model"] + metric_cols]
-            merged = before_df.merge(
-                after_df,
-                on="Model",
-                how="inner",
-                suffixes=(" (Before)", " (After)")
-            )
-            return merged
-
-        non_table = build_before_after_table(
-            st.session_state.get("non_ensemble_results", []),
-            st.session_state.get("tuned_non_ensemble_results", []),
-        )
-        if non_table is not None:
-            st.markdown("**Non-ensemble Models**")
-            st.dataframe(non_table, width='stretch')
-        else:
-            st.info(
-                "Run non-ensemble models and tuning to build the before/after table.")
-
-        ens_table = build_before_after_table(
-            st.session_state.get("ensemble_results", []),
-            st.session_state.get("tuned_ensemble_results", []),
-        )
-        if ens_table is not None:
-            st.markdown("**Ensemble Models**")
-            st.dataframe(ens_table, width='stretch')
-        else:
-            st.info("Run ensemble models and tuning to build the before/after table.")
-
-        st.subheader("Feature Importance (Ensemble Models)")
-        tuned_models = st.session_state.get("tuned_models", {})
-        if tuned_models:
-            model_names = list(tuned_models.keys())
-            default_models = model_names[:3]
-            selected_models = st.multiselect(
-                "Select models for feature importance",
-                model_names,
-                default=default_models,
-                key="fi_models"
-            )
-            top_n = st.slider("Top features to show", 5, 30, 20, key="fi_top_n")
-
-            if not selected_models:
-                st.info("Select at least one model to view feature importance.")
-            else:
-                tabs = st.tabs(selected_models)
-                for tab, model_name in zip(tabs, selected_models):
-                    with tab:
-                        model_pipeline = tuned_models[model_name]
-                        try:
-                            fi_df = self.compute_feature_importance(
-                                model_pipeline, df, target_col, top_n=top_n
-                            )
-                            fig = px.bar(fi_df, x="Importance",
-                                         y="Feature", orientation="h")
-                            st.plotly_chart(fig, width='stretch')
-                        except Exception as exc:
-                            st.warning(
-                                f"Feature importance could not be computed: {exc}")
-        else:
-            st.info("Run hyperparameter tuning to see feature importances.")
-
-        st.subheader("SHAP Analysis (Optional)")
-        if not SHAP_AVAILABLE:
-            st.info("SHAP is not available in this environment.")
-        else:
+        with explain_tab:
+            st.subheader("Feature Importance (Ensemble Models)")
+            tuned_models = st.session_state.get("tuned_models", {})
             if tuned_models:
-                shap_model_name = st.selectbox(
-                    "Model for SHAP analysis",
-                    list(tuned_models.keys()),
-                    key="shap_model",
+                model_names = list(tuned_models.keys())
+                default_models = model_names[:3]
+                selected_models = st.multiselect(
+                    "Select models for feature importance",
+                    model_names,
+                    default=default_models,
+                    key="fi_models"
                 )
-                col_a, col_b = st.columns(2)
-                with col_a:
-                    max_sample = min(1000, len(X))
-                    min_sample = min(50, max_sample)
-                    default_sample = min(200, max_sample)
-                    step_size = 10 if max_sample < 100 else 50
-                    sample_size = st.slider(
-                        "SHAP sample size (rows)",
-                        min_sample,
-                        max_sample,
-                        default_sample,
-                        step=step_size,
-                    )
-                with col_b:
-                    max_display = st.slider(
-                        "Max features to display", 5, 30, 20)
-                if st.button("Run SHAP summary"):
-                    model_pipeline = tuned_models[shap_model_name]
-                    X_sample = X.sample(
-                        min(sample_size, len(X)), random_state=42)
-                    with st.spinner("Computing SHAP values..."):
-                        model_pipeline.fit(X, y)
-                        model = model_pipeline.named_steps["model"]
-                        preprocessor = model_pipeline.named_steps["preprocess"]
-                        X_transformed = preprocessor.transform(X_sample)
-                        feature_names = preprocessor.get_feature_names_out()
+                top_n = st.slider("Top features to show", 5, 30, 20, key="fi_top_n")
 
-                        if "selector" in model_pipeline.named_steps:
-                            selector = model_pipeline.named_steps["selector"]
-                            support = selector.get_support()
-                            X_transformed = selector.transform(X_transformed)
-                            feature_names = feature_names[support]
-
-                        if hasattr(model, "predict_proba"):
+                if not selected_models:
+                    st.info("Select at least one model to view feature importance.")
+                else:
+                    tabs = st.tabs(selected_models)
+                    for tab, model_name in zip(tabs, selected_models):
+                        with tab:
+                            model_pipeline = tuned_models[model_name]
                             try:
-                                explainer = shap.Explainer(
-                                    model, X_transformed, feature_names=feature_names)
-                                shap_values = explainer(X_transformed)
-                            except Exception:
-                                try:
-                                    explainer = shap.TreeExplainer(model)
-                                    shap_values = explainer.shap_values(
-                                        X_transformed)
-                                except Exception as exc:
-                                    st.warning(f"SHAP failed: {exc}")
-                                    shap_values = None
-                        else:
-                            st.info(
-                                "Selected model does not support SHAP with current setup.")
-                            shap_values = None
-
-                    if shap_values is not None:
-                        beeswarm_fig, bar_fig = self.build_shap_summary_plotly(
-                            shap_values,
-                            X_transformed,
-                            feature_names,
-                            max_display=max_display,
-                            class_index=1
-                        )
-                        tab_a, tab_b = st.tabs(
-                            ["Beeswarm (Interactive)", "Bar (Mean |SHAP|)"])
-                        with tab_a:
-                            st.plotly_chart(beeswarm_fig, width='stretch')
-                        with tab_b:
-                            st.plotly_chart(bar_fig, width='stretch')
+                                fi_df = self.compute_feature_importance(
+                                    model_pipeline, df, target_col, top_n=top_n
+                                )
+                                fig = px.bar(fi_df, x="Importance",
+                                             y="Feature", orientation="h")
+                                st.plotly_chart(fig, width='stretch')
+                            except Exception as exc:
+                                st.warning(
+                                    f"Feature importance could not be computed: {exc}")
             else:
-                st.info("Run hyperparameter tuning first to enable SHAP analysis.")
-            with st.expander("SHAP Code Snippet"):
-                st.code(
-                    """
+                st.info("Run hyperparameter tuning to see feature importances.")
+
+            st.markdown("---")
+            st.subheader("SHAP Analysis (Optional)")
+            if not SHAP_AVAILABLE:
+                st.info("SHAP is not available in this environment.")
+            else:
+                if tuned_models:
+                    shap_model_name = st.selectbox(
+                        "Model for SHAP analysis",
+                        list(tuned_models.keys()),
+                        key="shap_model",
+                    )
+                    col_a, col_b = st.columns(2)
+                    with col_a:
+                        max_sample = min(1000, len(X))
+                        min_sample = min(50, max_sample)
+                        default_sample = min(200, max_sample)
+                        step_size = 10 if max_sample < 100 else 50
+                        sample_size = st.slider(
+                            "SHAP sample size (rows)",
+                            min_sample,
+                            max_sample,
+                            default_sample,
+                            step=step_size,
+                        )
+                    with col_b:
+                        max_display = st.slider(
+                            "Max features to display", 5, 30, 20)
+                    if st.button("Run SHAP summary"):
+                        model_pipeline = tuned_models[shap_model_name]
+                        X_sample = X.sample(
+                            min(sample_size, len(X)), random_state=42)
+                        with st.spinner("Computing SHAP values..."):
+                            model_pipeline.fit(X, y)
+                            model = model_pipeline.named_steps["model"]
+                            preprocessor = model_pipeline.named_steps["preprocess"]
+                            X_transformed = preprocessor.transform(X_sample)
+                            feature_names = preprocessor.get_feature_names_out()
+
+                            if "selector" in model_pipeline.named_steps:
+                                selector = model_pipeline.named_steps["selector"]
+                                support = selector.get_support()
+                                X_transformed = selector.transform(X_transformed)
+                                feature_names = feature_names[support]
+
+                            if hasattr(model, "predict_proba"):
+                                try:
+                                    explainer = shap.Explainer(
+                                        model, X_transformed, feature_names=feature_names)
+                                    shap_values = explainer(X_transformed)
+                                except Exception:
+                                    try:
+                                        explainer = shap.TreeExplainer(model)
+                                        shap_values = explainer.shap_values(
+                                            X_transformed)
+                                    except Exception as exc:
+                                        st.warning(f"SHAP failed: {exc}")
+                                        shap_values = None
+                            else:
+                                st.info(
+                                    "Selected model does not support SHAP with current setup.")
+                                shap_values = None
+
+                        if shap_values is not None:
+                            beeswarm_fig, bar_fig = self.build_shap_summary_plotly(
+                                shap_values,
+                                X_transformed,
+                                feature_names,
+                                max_display=max_display,
+                                class_index=1
+                            )
+                            tab_a, tab_b = st.tabs(
+                                ["Beeswarm (Interactive)", "Bar (Mean |SHAP|)"])
+                            with tab_a:
+                                st.plotly_chart(beeswarm_fig, width='stretch')
+                            with tab_b:
+                                st.plotly_chart(bar_fig, width='stretch')
+                else:
+                    st.info("Run hyperparameter tuning first to enable SHAP analysis.")
+                with st.expander("SHAP Code Snippet"):
+                    st.code(
+                        """
 from shap import Explainer
 
 model_pipeline.fit(X, y)
@@ -1713,27 +1749,29 @@ if "selector" in model_pipeline.named_steps:
 explainer = Explainer(model, X_transformed, feature_names=feature_names)
 shap_values = explainer(X_transformed)
 """,
-                    language="python"
-                )
-                st.code(
-                    """
+                        language="python"
+                    )
+                    st.code(
+                        """
 # Use a custom Plotly-based summary for interactivity
 beeswarm_fig, bar_fig = dashboard.build_shap_summary_plotly(
     shap_values, X_transformed, feature_names, max_display=20
 )
 """,
-                    language="python"
-                )
+                        language="python"
+                    )
 
-        st.subheader("Results Export")
-        self.download_results(st.session_state.get(
-            "non_ensemble_results"), "Download non-ensemble results (CSV)", "non_ensemble_results.csv")
-        self.download_results(st.session_state.get(
-            "ensemble_results"), "Download ensemble results (CSV)", "ensemble_results.csv")
-        self.download_results(st.session_state.get("tuned_non_ensemble_results"),
-                              "Download tuned non-ensemble results (CSV)", "tuned_non_ensemble_results.csv")
-        self.download_results(st.session_state.get("tuned_ensemble_results"),
-                              "Download tuned ensemble results (CSV)", "tuned_ensemble_results.csv")
+        with export_tab:
+            st.subheader("Results Export")
+            self.download_results(st.session_state.get(
+                "non_ensemble_results"), "Download non-ensemble results (CSV)", "non_ensemble_results.csv")
+            self.download_results(st.session_state.get(
+                "ensemble_results"), "Download ensemble results (CSV)", "ensemble_results.csv")
+            self.download_results(st.session_state.get("tuned_non_ensemble_results"),
+                                  "Download tuned non-ensemble results (CSV)", "tuned_non_ensemble_results.csv")
+            self.download_results(st.session_state.get("tuned_ensemble_results"),
+                                  "Download tuned ensemble results (CSV)", "tuned_ensemble_results.csv")
+
 
     def run(self):
         st.title("Heart Disease Analysis Dashboard")
