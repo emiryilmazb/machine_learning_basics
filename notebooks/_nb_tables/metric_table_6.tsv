@@ -1,0 +1,2 @@
+	Accuracy	Precision	Recall	F1 Score	AUC	PR AUC	Train Accuracy	Train F1	Model
+0	0.818033	0.815263	0.85928	0.832691	0.886073	0.888571	0.898183	0.906799	AdaBoost

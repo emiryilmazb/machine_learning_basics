@@ -1,0 +1,2 @@
+	Accuracy	Precision	Recall	F1 Score	AUC	PR AUC	Train Accuracy	Train F1	Model
+0	0.831257	0.828243	0.877652	0.8488	0.90897	0.921266	0.92716	0.934307	SVM (RBF)

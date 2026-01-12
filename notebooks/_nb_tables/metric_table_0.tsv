@@ -1,0 +1,2 @@
+	Accuracy	Precision	Recall	F1 Score	AUC	PR AUC	Train Accuracy	Train F1	Model
+0	0.857541	0.857077	0.889962	0.870709	0.917406	0.922947	0.87665	0.889236	Logistic Regression

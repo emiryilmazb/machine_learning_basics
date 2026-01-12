@@ -1,0 +1,3238 @@
+Dataset already present: heart.csv
+
+
+----
+
+Rows: 1025 Columns: 14
+Source: Kaggle - Heart Disease Dataset
+Link: https://www.kaggle.com/datasets/johnsmith88/heart-disease-dataset
+
+
+----
+
+   age  sex  cp  trestbps  chol  fbs  restecg  thalach  exang  oldpeak  slope  \
+0   52    1   0       125   212    0        1      168      0      1.0      2   
+1   53    1   0       140   203    1        0      155      1      3.1      0   
+2   70    1   0       145   174    0        1      125      1      2.6      0   
+3   61    1   0       148   203    0        1      161      0      0.0      2   
+4   62    0   0       138   294    1        1      106      0      1.9      1   
+
+   ca  thal  target  
+0   2     3       0  
+1   0     3       0  
+2   0     3       0  
+3   1     3       0  
+4   3     2       0  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>age</th>
+      <th>sex</th>
+      <th>cp</th>
+      <th>trestbps</th>
+      <th>chol</th>
+      <th>fbs</th>
+      <th>restecg</th>
+      <th>thalach</th>
+      <th>exang</th>
+      <th>oldpeak</th>
+      <th>slope</th>
+      <th>ca</th>
+      <th>thal</th>
+      <th>target</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>52</td>
+      <td>1</td>
+      <td>0</td>
+      <td>125</td>
+      <td>212</td>
+      <td>0</td>
+      <td>1</td>
+      <td>168</td>
+      <td>0</td>
+      <td>1.0</td>
+      <td>2</td>
+      <td>2</td>
+      <td>3</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>53</td>
+      <td>1</td>
+      <td>0</td>
+      <td>140</td>
+      <td>203</td>
+      <td>1</td>
+      <td>0</td>
+      <td>155</td>
+      <td>1</td>
+      <td>3.1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>70</td>
+      <td>1</td>
+      <td>0</td>
+      <td>145</td>
+      <td>174</td>
+      <td>0</td>
+      <td>1</td>
+      <td>125</td>
+      <td>1</td>
+      <td>2.6</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>61</td>
+      <td>1</td>
+      <td>0</td>
+      <td>148</td>
+      <td>203</td>
+      <td>0</td>
+      <td>1</td>
+      <td>161</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>2</td>
+      <td>1</td>
+      <td>3</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>62</td>
+      <td>0</td>
+      <td>0</td>
+      <td>138</td>
+      <td>294</td>
+      <td>1</td>
+      <td>1</td>
+      <td>106</td>
+      <td>0</td>
+      <td>1.9</td>
+      <td>1</td>
+      <td>3</td>
+      <td>2</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+           count        mean        std    min    25%    50%    75%    max
+age       1025.0   54.434146   9.072290   29.0   48.0   56.0   61.0   77.0
+sex       1025.0    0.695610   0.460373    0.0    0.0    1.0    1.0    1.0
+cp        1025.0    0.942439   1.029641    0.0    0.0    1.0    2.0    3.0
+trestbps  1025.0  131.611707  17.516718   94.0  120.0  130.0  140.0  200.0
+chol      1025.0  246.000000  51.592510  126.0  211.0  240.0  275.0  564.0
+fbs       1025.0    0.149268   0.356527    0.0    0.0    0.0    0.0    1.0
+restecg   1025.0    0.529756   0.527878    0.0    0.0    1.0    1.0    2.0
+thalach   1025.0  149.114146  23.005724   71.0  132.0  152.0  166.0  202.0
+exang     1025.0    0.336585   0.472772    0.0    0.0    0.0    1.0    1.0
+oldpeak   1025.0    1.071512   1.175053    0.0    0.0    0.8    1.8    6.2
+slope     1025.0    1.385366   0.617755    0.0    1.0    1.0    2.0    2.0
+ca        1025.0    0.754146   1.030798    0.0    0.0    0.0    1.0    4.0
+thal      1025.0    2.323902   0.620660    0.0    2.0    2.0    3.0    3.0
+target    1025.0    0.513171   0.500070    0.0    0.0    1.0    1.0    1.0
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>count</th>
+      <th>mean</th>
+      <th>std</th>
+      <th>min</th>
+      <th>25%</th>
+      <th>50%</th>
+      <th>75%</th>
+      <th>max</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>age</th>
+      <td>1025.0</td>
+      <td>54.434146</td>
+      <td>9.072290</td>
+      <td>29.0</td>
+      <td>48.0</td>
+      <td>56.0</td>
+      <td>61.0</td>
+      <td>77.0</td>
+    </tr>
+    <tr>
+      <th>sex</th>
+      <td>1025.0</td>
+      <td>0.695610</td>
+      <td>0.460373</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>cp</th>
+      <td>1025.0</td>
+      <td>0.942439</td>
+      <td>1.029641</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>2.0</td>
+      <td>3.0</td>
+    </tr>
+    <tr>
+      <th>trestbps</th>
+      <td>1025.0</td>
+      <td>131.611707</td>
+      <td>17.516718</td>
+      <td>94.0</td>
+      <td>120.0</td>
+      <td>130.0</td>
+      <td>140.0</td>
+      <td>200.0</td>
+    </tr>
+    <tr>
+      <th>chol</th>
+      <td>1025.0</td>
+      <td>246.000000</td>
+      <td>51.592510</td>
+      <td>126.0</td>
+      <td>211.0</td>
+      <td>240.0</td>
+      <td>275.0</td>
+      <td>564.0</td>
+    </tr>
+    <tr>
+      <th>fbs</th>
+      <td>1025.0</td>
+      <td>0.149268</td>
+      <td>0.356527</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>restecg</th>
+      <td>1025.0</td>
+      <td>0.529756</td>
+      <td>0.527878</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <th>thalach</th>
+      <td>1025.0</td>
+      <td>149.114146</td>
+      <td>23.005724</td>
+      <td>71.0</td>
+      <td>132.0</td>
+      <td>152.0</td>
+      <td>166.0</td>
+      <td>202.0</td>
+    </tr>
+    <tr>
+      <th>exang</th>
+      <td>1025.0</td>
+      <td>0.336585</td>
+      <td>0.472772</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>oldpeak</th>
+      <td>1025.0</td>
+      <td>1.071512</td>
+      <td>1.175053</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.8</td>
+      <td>1.8</td>
+      <td>6.2</td>
+    </tr>
+    <tr>
+      <th>slope</th>
+      <td>1025.0</td>
+      <td>1.385366</td>
+      <td>0.617755</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>2.0</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <th>ca</th>
+      <td>1025.0</td>
+      <td>0.754146</td>
+      <td>1.030798</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>4.0</td>
+    </tr>
+    <tr>
+      <th>thal</th>
+      <td>1025.0</td>
+      <td>2.323902</td>
+      <td>0.620660</td>
+      <td>0.0</td>
+      <td>2.0</td>
+      <td>2.0</td>
+      <td>3.0</td>
+      <td>3.0</td>
+    </tr>
+    <tr>
+      <th>target</th>
+      <td>1025.0</td>
+      <td>0.513171</td>
+      <td>0.500070</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+Target column: target
+Target distribution:
+
+
+----
+
+target
+1    526
+0    499
+Name: count, dtype: int64
+
+----
+
+Duplicates removed: 723
+Rows after cleaning: 302
+Rows dropped due to missing target: 0
+
+
+----
+
+          Missing Before  Missing After
+age                    0              0
+sex                    0              0
+cp                     0              0
+trestbps               0              0
+chol                   0              0
+fbs                    0              0
+restecg                0              0
+thalach                0              0
+exang                  0              0
+oldpeak                0              0
+slope                  0              0
+ca                     0              0
+thal                   0              0
+target                 0              0
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Missing Before</th>
+      <th>Missing After</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>age</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>sex</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>cp</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>trestbps</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>chol</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>fbs</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>restecg</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>thalach</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>exang</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>oldpeak</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>slope</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>ca</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>thal</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>target</th>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+          count        mean        std      min     25%    50%     75%  \
+age       302.0   54.420530   9.047970   29.000   48.00   55.5   61.00   
+sex       302.0    0.682119   0.466426    0.000    0.00    1.0    1.00   
+cp        302.0    0.963576   1.032044    0.000    0.00    1.0    2.00   
+trestbps  302.0  131.258278  16.605232   94.000  120.00  130.0  140.00   
+chol      302.0  245.377070  47.486683  126.000  211.00  240.5  274.75   
+fbs       302.0    0.149007   0.356686    0.000    0.00    0.0    0.00   
+restecg   302.0    0.526490   0.526027    0.000    0.00    1.0    1.00   
+thalach   302.0  149.612997  22.765983   84.125  133.25  152.5  166.00   
+exang     302.0    0.327815   0.470196    0.000    0.00    0.0    1.00   
+oldpeak   302.0    1.027815   1.110395    0.000    0.00    0.8    1.60   
+slope     302.0    1.397351   0.616274    0.000    1.00    1.0    2.00   
+ca        302.0    0.718543   1.006748    0.000    0.00    0.0    1.00   
+thal      302.0    2.314570   0.613026    0.000    2.00    2.0    3.00   
+target    302.0    0.543046   0.498970    0.000    0.00    1.0    1.00   
+
+              max  
+age        77.000  
+sex         1.000  
+cp          3.000  
+trestbps  170.000  
+chol      370.375  
+fbs         1.000  
+restecg     2.000  
+thalach   202.000  
+exang       1.000  
+oldpeak     4.000  
+slope       2.000  
+ca          4.000  
+thal        3.000  
+target      1.000  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>count</th>
+      <th>mean</th>
+      <th>std</th>
+      <th>min</th>
+      <th>25%</th>
+      <th>50%</th>
+      <th>75%</th>
+      <th>max</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>age</th>
+      <td>302.0</td>
+      <td>54.420530</td>
+      <td>9.047970</td>
+      <td>29.000</td>
+      <td>48.00</td>
+      <td>55.5</td>
+      <td>61.00</td>
+      <td>77.000</td>
+    </tr>
+    <tr>
+      <th>sex</th>
+      <td>302.0</td>
+      <td>0.682119</td>
+      <td>0.466426</td>
+      <td>0.000</td>
+      <td>0.00</td>
+      <td>1.0</td>
+      <td>1.00</td>
+      <td>1.000</td>
+    </tr>
+    <tr>
+      <th>cp</th>
+      <td>302.0</td>
+      <td>0.963576</td>
+      <td>1.032044</td>
+      <td>0.000</td>
+      <td>0.00</td>
+      <td>1.0</td>
+      <td>2.00</td>
+      <td>3.000</td>
+    </tr>
+    <tr>
+      <th>trestbps</th>
+      <td>302.0</td>
+      <td>131.258278</td>
+      <td>16.605232</td>
+      <td>94.000</td>
+      <td>120.00</td>
+      <td>130.0</td>
+      <td>140.00</td>
+      <td>170.000</td>
+    </tr>
+    <tr>
+      <th>chol</th>
+      <td>302.0</td>
+      <td>245.377070</td>
+      <td>47.486683</td>
+      <td>126.000</td>
+      <td>211.00</td>
+      <td>240.5</td>
+      <td>274.75</td>
+      <td>370.375</td>
+    </tr>
+    <tr>
+      <th>fbs</th>
+      <td>302.0</td>
+      <td>0.149007</td>
+      <td>0.356686</td>
+      <td>0.000</td>
+      <td>0.00</td>
+      <td>0.0</td>
+      <td>0.00</td>
+      <td>1.000</td>
+    </tr>
+    <tr>
+      <th>restecg</th>
+      <td>302.0</td>
+      <td>0.526490</td>
+      <td>0.526027</td>
+      <td>0.000</td>
+      <td>0.00</td>
+      <td>1.0</td>
+      <td>1.00</td>
+      <td>2.000</td>
+    </tr>
+    <tr>
+      <th>thalach</th>
+      <td>302.0</td>
+      <td>149.612997</td>
+      <td>22.765983</td>
+      <td>84.125</td>
+      <td>133.25</td>
+      <td>152.5</td>
+      <td>166.00</td>
+      <td>202.000</td>
+    </tr>
+    <tr>
+      <th>exang</th>
+      <td>302.0</td>
+      <td>0.327815</td>
+      <td>0.470196</td>
+      <td>0.000</td>
+      <td>0.00</td>
+      <td>0.0</td>
+      <td>1.00</td>
+      <td>1.000</td>
+    </tr>
+    <tr>
+      <th>oldpeak</th>
+      <td>302.0</td>
+      <td>1.027815</td>
+      <td>1.110395</td>
+      <td>0.000</td>
+      <td>0.00</td>
+      <td>0.8</td>
+      <td>1.60</td>
+      <td>4.000</td>
+    </tr>
+    <tr>
+      <th>slope</th>
+      <td>302.0</td>
+      <td>1.397351</td>
+      <td>0.616274</td>
+      <td>0.000</td>
+      <td>1.00</td>
+      <td>1.0</td>
+      <td>2.00</td>
+      <td>2.000</td>
+    </tr>
+    <tr>
+      <th>ca</th>
+      <td>302.0</td>
+      <td>0.718543</td>
+      <td>1.006748</td>
+      <td>0.000</td>
+      <td>0.00</td>
+      <td>0.0</td>
+      <td>1.00</td>
+      <td>4.000</td>
+    </tr>
+    <tr>
+      <th>thal</th>
+      <td>302.0</td>
+      <td>2.314570</td>
+      <td>0.613026</td>
+      <td>0.000</td>
+      <td>2.00</td>
+      <td>2.0</td>
+      <td>3.00</td>
+      <td>3.000</td>
+    </tr>
+    <tr>
+      <th>target</th>
+      <td>302.0</td>
+      <td>0.543046</td>
+      <td>0.498970</td>
+      <td>0.000</td>
+      <td>0.00</td>
+      <td>1.0</td>
+      <td>1.00</td>
+      <td>1.000</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+     Feature  Missing Count
+0        age              0
+1        sex              0
+2         cp              0
+3   trestbps              0
+4       chol              0
+5        fbs              0
+6    restecg              0
+7    thalach              0
+8      exang              0
+9    oldpeak              0
+10     slope              0
+11        ca              0
+12      thal              0
+13    target              0
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Feature</th>
+      <th>Missing Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>age</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>sex</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>cp</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>trestbps</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>chol</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>fbs</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>restecg</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>thalach</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>exang</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>oldpeak</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>slope</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>ca</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>thal</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>target</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+<Figure size 600x480 with 1 Axes>
+
+----
+
+Cleaned target distribution:
+
+
+----
+
+target
+1    164
+0    138
+Name: count, dtype: int64
+
+----
+
+<Figure size 960x480 with 1 Axes>
+
+----
+
+<Figure size 960x720 with 2 Axes>
+
+----
+
+<Figure size 1440x960 with 16 Axes>
+
+----
+
+<Figure size 1200x720 with 1 Axes>
+
+----
+
+<Figure size 720x480 with 1 Axes>
+
+----
+
+<Figure size 720x480 with 1 Axes>
+
+----
+
+<Figure size 720x480 with 1 Axes>
+
+----
+
+<Figure size 720x480 with 1 Axes>
+
+----
+
+<Figure size 720x480 with 1 Axes>
+
+----
+
+<Figure size 720x480 with 1 Axes>
+
+----
+
+<Figure size 720x480 with 1 Axes>
+
+----
+
+<Figure size 720x480 with 1 Axes>
+
+----
+
+Processed shape: (302, 31)
+
+
+----
+
+   num__age  num__trestbps  num__chol  num__thalach  num__oldpeak  cat__sex_0  \
+0 -0.267966      -0.377511  -0.704039      0.808993     -0.025091         0.0   
+1 -0.157260       0.527318  -0.893880      0.237018      1.869266         0.0   
+2  1.724733       0.828927  -1.505591     -1.082925      1.418229         0.0   
+3  0.728383       1.009893  -0.893880      0.501006     -0.927166         0.0   
+4  0.839089       0.406674   1.025627     -1.918889      0.786777         1.0   
+
+   cat__sex_1  cat__cp_0  cat__cp_1  cat__cp_2  ...  cat__ca_0  cat__ca_1  \
+0         1.0        1.0        0.0        0.0  ...        0.0        0.0   
+1         1.0        1.0        0.0        0.0  ...        1.0        0.0   
+2         1.0        1.0        0.0        0.0  ...        1.0        0.0   
+3         1.0        1.0        0.0        0.0  ...        0.0        1.0   
+4         0.0        1.0        0.0        0.0  ...        0.0        0.0   
+
+   cat__ca_2  cat__ca_3  cat__ca_4  cat__thal_0  cat__thal_1  cat__thal_2  \
+0        1.0        0.0        0.0          0.0          0.0          0.0   
+1        0.0        0.0        0.0          0.0          0.0          0.0   
+2        0.0        0.0        0.0          0.0          0.0          0.0   
+3        0.0        0.0        0.0          0.0          0.0          0.0   
+4        0.0        1.0        0.0          0.0          0.0          1.0   
+
+   cat__thal_3  target  
+0          1.0       0  
+1          1.0       0  
+2          1.0       0  
+3          1.0       0  
+4          0.0       0  
+
+[5 rows x 31 columns]
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>num__age</th>
+      <th>num__trestbps</th>
+      <th>num__chol</th>
+      <th>num__thalach</th>
+      <th>num__oldpeak</th>
+      <th>cat__sex_0</th>
+      <th>cat__sex_1</th>
+      <th>cat__cp_0</th>
+      <th>cat__cp_1</th>
+      <th>cat__cp_2</th>
+      <th>...</th>
+      <th>cat__ca_0</th>
+      <th>cat__ca_1</th>
+      <th>cat__ca_2</th>
+      <th>cat__ca_3</th>
+      <th>cat__ca_4</th>
+      <th>cat__thal_0</th>
+      <th>cat__thal_1</th>
+      <th>cat__thal_2</th>
+      <th>cat__thal_3</th>
+      <th>target</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>-0.267966</td>
+      <td>-0.377511</td>
+      <td>-0.704039</td>
+      <td>0.808993</td>
+      <td>-0.025091</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>...</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>-0.157260</td>
+      <td>0.527318</td>
+      <td>-0.893880</td>
+      <td>0.237018</td>
+      <td>1.869266</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>...</td>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1.724733</td>
+      <td>0.828927</td>
+      <td>-1.505591</td>
+      <td>-1.082925</td>
+      <td>1.418229</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>...</td>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.728383</td>
+      <td>1.009893</td>
+      <td>-0.893880</td>
+      <td>0.501006</td>
+      <td>-0.927166</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>...</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.839089</td>
+      <td>0.406674</td>
+      <td>1.025627</td>
+      <td>-1.918889</td>
+      <td>0.786777</td>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>...</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+      <td>0.0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 31 columns</p>
+</div>
+
+----
+
+Train shape: (241, 13)
+Test shape: (61, 13)
+
+
+----
+
+   Accuracy  Precision    Recall  F1 Score       AUC    PR AUC  \
+0  0.857541   0.857077  0.889962  0.870709  0.917406  0.922947   
+
+   Train Accuracy  Train F1                Model  
+0         0.87665  0.889236  Logistic Regression  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Accuracy</th>
+      <th>Precision</th>
+      <th>Recall</th>
+      <th>F1 Score</th>
+      <th>AUC</th>
+      <th>PR AUC</th>
+      <th>Train Accuracy</th>
+      <th>Train F1</th>
+      <th>Model</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.857541</td>
+      <td>0.857077</td>
+      <td>0.889962</td>
+      <td>0.870709</td>
+      <td>0.917406</td>
+      <td>0.922947</td>
+      <td>0.87665</td>
+      <td>0.889236</td>
+      <td>Logistic Regression</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+   Accuracy  Precision    Recall  F1 Score      AUC    PR AUC  Train Accuracy  \
+0  0.831257   0.828243  0.877652    0.8488  0.90897  0.921266         0.92716   
+
+   Train F1      Model  
+0  0.934307  SVM (RBF)  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Accuracy</th>
+      <th>Precision</th>
+      <th>Recall</th>
+      <th>F1 Score</th>
+      <th>AUC</th>
+      <th>PR AUC</th>
+      <th>Train Accuracy</th>
+      <th>Train F1</th>
+      <th>Model</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.831257</td>
+      <td>0.828243</td>
+      <td>0.877652</td>
+      <td>0.8488</td>
+      <td>0.90897</td>
+      <td>0.921266</td>
+      <td>0.92716</td>
+      <td>0.934307</td>
+      <td>SVM (RBF)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+   Accuracy  Precision    Recall  F1 Score       AUC    PR AUC  \
+0  0.821475   0.826943  0.853788  0.838489  0.886447  0.862311   
+
+   Train Accuracy  Train F1 Model  
+0         0.87915  0.890694   KNN  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Accuracy</th>
+      <th>Precision</th>
+      <th>Recall</th>
+      <th>F1 Score</th>
+      <th>AUC</th>
+      <th>PR AUC</th>
+      <th>Train Accuracy</th>
+      <th>Train F1</th>
+      <th>Model</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.821475</td>
+      <td>0.826943</td>
+      <td>0.853788</td>
+      <td>0.838489</td>
+      <td>0.886447</td>
+      <td>0.862311</td>
+      <td>0.87915</td>
+      <td>0.890694</td>
+      <td>KNN</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+   Accuracy  Precision    Recall  F1 Score       AUC    PR AUC  \
+0  0.857541   0.857077  0.889962  0.870709  0.917406  0.922947   
+1  0.831257   0.828243  0.877652  0.848800  0.908970  0.921266   
+2  0.821475   0.826943  0.853788  0.838489  0.886447  0.862311   
+3  0.728525   0.748631  0.756250  0.749617  0.726405  0.698525   
+4  0.543060   0.543060  1.000000  0.703852  0.500000  0.543060   
+
+   Train Accuracy  Train F1                  Model  
+0        0.876650  0.889236    Logistic Regression  
+1        0.927160  0.934307              SVM (RBF)  
+2        0.879150  0.890694                    KNN  
+3        1.000000  1.000000          Decision Tree  
+4        0.543047  0.703862  Dummy (Most Frequent)  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Accuracy</th>
+      <th>Precision</th>
+      <th>Recall</th>
+      <th>F1 Score</th>
+      <th>AUC</th>
+      <th>PR AUC</th>
+      <th>Train Accuracy</th>
+      <th>Train F1</th>
+      <th>Model</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.857541</td>
+      <td>0.857077</td>
+      <td>0.889962</td>
+      <td>0.870709</td>
+      <td>0.917406</td>
+      <td>0.922947</td>
+      <td>0.876650</td>
+      <td>0.889236</td>
+      <td>Logistic Regression</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>0.831257</td>
+      <td>0.828243</td>
+      <td>0.877652</td>
+      <td>0.848800</td>
+      <td>0.908970</td>
+      <td>0.921266</td>
+      <td>0.927160</td>
+      <td>0.934307</td>
+      <td>SVM (RBF)</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.821475</td>
+      <td>0.826943</td>
+      <td>0.853788</td>
+      <td>0.838489</td>
+      <td>0.886447</td>
+      <td>0.862311</td>
+      <td>0.879150</td>
+      <td>0.890694</td>
+      <td>KNN</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.728525</td>
+      <td>0.748631</td>
+      <td>0.756250</td>
+      <td>0.749617</td>
+      <td>0.726405</td>
+      <td>0.698525</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>Decision Tree</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.543060</td>
+      <td>0.543060</td>
+      <td>1.000000</td>
+      <td>0.703852</td>
+      <td>0.500000</td>
+      <td>0.543060</td>
+      <td>0.543047</td>
+      <td>0.703862</td>
+      <td>Dummy (Most Frequent)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+{'best': 'Logistic Regression', 'worst': 'Dummy (Most Frequent)', 'notes': ['Best vs worst gap is 0.167 on F1 Score.', 'Worst model may be underfitting (train and test F1 both low).']}
+Holdout metrics: {'Accuracy': 0.8360655737704918, 'Precision': 0.8484848484848485, 'Recall': 0.8484848484848485, 'F1 Score': 0.8484848484848485, 'AUC': 0.906926406926407, 'PR AUC': 0.9282794688682017}
+
+
+----
+
+<Figure size 480x480 with 2 Axes>
+
+----
+
+   Accuracy  Precision    Recall  F1 Score      AUC    PR AUC  Train Accuracy  \
+0  0.824699   0.838471  0.847727  0.838417  0.90611  0.911587             1.0   
+
+   Train F1          Model  
+0       1.0  Random Forest  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Accuracy</th>
+      <th>Precision</th>
+      <th>Recall</th>
+      <th>F1 Score</th>
+      <th>AUC</th>
+      <th>PR AUC</th>
+      <th>Train Accuracy</th>
+      <th>Train F1</th>
+      <th>Model</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.824699</td>
+      <td>0.838471</td>
+      <td>0.847727</td>
+      <td>0.838417</td>
+      <td>0.90611</td>
+      <td>0.911587</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>Random Forest</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+   Accuracy  Precision    Recall  F1 Score       AUC    PR AUC  \
+0  0.795027   0.796555  0.835417  0.812677  0.881763  0.897038   
+
+   Train Accuracy  Train F1              Model  
+0        0.997517  0.997724  Gradient Boosting  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Accuracy</th>
+      <th>Precision</th>
+      <th>Recall</th>
+      <th>F1 Score</th>
+      <th>AUC</th>
+      <th>PR AUC</th>
+      <th>Train Accuracy</th>
+      <th>Train F1</th>
+      <th>Model</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.795027</td>
+      <td>0.796555</td>
+      <td>0.835417</td>
+      <td>0.812677</td>
+      <td>0.881763</td>
+      <td>0.897038</td>
+      <td>0.997517</td>
+      <td>0.997724</td>
+      <td>Gradient Boosting</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+   Accuracy  Precision   Recall  F1 Score       AUC    PR AUC  Train Accuracy  \
+0  0.818033   0.815263  0.85928  0.832691  0.886073  0.888571        0.898183   
+
+   Train F1     Model  
+0  0.906799  AdaBoost  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Accuracy</th>
+      <th>Precision</th>
+      <th>Recall</th>
+      <th>F1 Score</th>
+      <th>AUC</th>
+      <th>PR AUC</th>
+      <th>Train Accuracy</th>
+      <th>Train F1</th>
+      <th>Model</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.818033</td>
+      <td>0.815263</td>
+      <td>0.85928</td>
+      <td>0.832691</td>
+      <td>0.886073</td>
+      <td>0.888571</td>
+      <td>0.898183</td>
+      <td>0.906799</td>
+      <td>AdaBoost</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+   Accuracy  Precision    Recall  F1 Score       AUC    PR AUC  \
+0  0.808251   0.818764  0.835417  0.823759  0.871667  0.880383   
+
+   Train Accuracy  Train F1    Model  
+0             1.0       1.0  XGBoost  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Accuracy</th>
+      <th>Precision</th>
+      <th>Recall</th>
+      <th>F1 Score</th>
+      <th>AUC</th>
+      <th>PR AUC</th>
+      <th>Train Accuracy</th>
+      <th>Train F1</th>
+      <th>Model</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.808251</td>
+      <td>0.818764</td>
+      <td>0.835417</td>
+      <td>0.823759</td>
+      <td>0.871667</td>
+      <td>0.880383</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>XGBoost</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+Tuned non-ensemble results:
+
+
+----
+
+   Accuracy  Precision    Recall  F1 Score       AUC    PR AUC  \
+0  0.857541   0.857077  0.889962  0.870709  0.917406  0.922947   
+1  0.831038   0.828106  0.877652  0.849541  0.915071  0.925464   
+2  0.837869   0.823778  0.896212  0.857239  0.899574  0.891452   
+3  0.801257   0.814579  0.829167  0.817426  0.850877  0.815566   
+
+   Train Accuracy  Train F1                Model  \
+0        0.876650  0.889236  Logistic Regression   
+1        0.875817  0.888687            SVM (RBF)   
+2        0.855146  0.871467                  KNN   
+3        0.855969  0.869553        Decision Tree   
+
+                                         Best Params  
+0          {'model__C': 1, 'model__solver': 'lbfgs'}  
+1            {'model__C': 1, 'model__gamma': 'auto'}  
+2  {'model__n_neighbors': 11, 'model__weights': '...  
+3  {'model__criterion': 'gini', 'model__max_depth...  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Accuracy</th>
+      <th>Precision</th>
+      <th>Recall</th>
+      <th>F1 Score</th>
+      <th>AUC</th>
+      <th>PR AUC</th>
+      <th>Train Accuracy</th>
+      <th>Train F1</th>
+      <th>Model</th>
+      <th>Best Params</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.857541</td>
+      <td>0.857077</td>
+      <td>0.889962</td>
+      <td>0.870709</td>
+      <td>0.917406</td>
+      <td>0.922947</td>
+      <td>0.876650</td>
+      <td>0.889236</td>
+      <td>Logistic Regression</td>
+      <td>{'model__C': 1, 'model__solver': 'lbfgs'}</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>0.831038</td>
+      <td>0.828106</td>
+      <td>0.877652</td>
+      <td>0.849541</td>
+      <td>0.915071</td>
+      <td>0.925464</td>
+      <td>0.875817</td>
+      <td>0.888687</td>
+      <td>SVM (RBF)</td>
+      <td>{'model__C': 1, 'model__gamma': 'auto'}</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.837869</td>
+      <td>0.823778</td>
+      <td>0.896212</td>
+      <td>0.857239</td>
+      <td>0.899574</td>
+      <td>0.891452</td>
+      <td>0.855146</td>
+      <td>0.871467</td>
+      <td>KNN</td>
+      <td>{'model__n_neighbors': 11, 'model__weights': '...</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.801257</td>
+      <td>0.814579</td>
+      <td>0.829167</td>
+      <td>0.817426</td>
+      <td>0.850877</td>
+      <td>0.815566</td>
+      <td>0.855969</td>
+      <td>0.869553</td>
+      <td>Decision Tree</td>
+      <td>{'model__criterion': 'gini', 'model__max_depth...</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+Tuned ensemble results:
+
+
+----
+
+   Accuracy  Precision    Recall  F1 Score       AUC    PR AUC  \
+0  0.837814   0.844595  0.865909  0.851863  0.914220  0.926696   
+1  0.817978   0.825821  0.853220  0.834298  0.899324  0.914257   
+2  0.844317   0.841454  0.883523  0.858772  0.895626  0.900414   
+3  0.824699   0.833622  0.847348  0.837789  0.888238  0.898086   
+
+   Train Accuracy  Train F1              Model  \
+0        0.939567  0.945371      Random Forest   
+1        0.916402  0.924859  Gradient Boosting   
+2        0.882456  0.894641           AdaBoost   
+3        1.000000  1.000000            XGBoost   
+
+                                         Best Params  
+0  {'model__max_depth': None, 'model__min_samples...  
+1  {'model__learning_rate': 0.05, 'model__max_dep...  
+2  {'model__learning_rate': 0.5, 'model__n_estima...  
+3  {'model__colsample_bytree': 0.8, 'model__learn...  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Accuracy</th>
+      <th>Precision</th>
+      <th>Recall</th>
+      <th>F1 Score</th>
+      <th>AUC</th>
+      <th>PR AUC</th>
+      <th>Train Accuracy</th>
+      <th>Train F1</th>
+      <th>Model</th>
+      <th>Best Params</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.837814</td>
+      <td>0.844595</td>
+      <td>0.865909</td>
+      <td>0.851863</td>
+      <td>0.914220</td>
+      <td>0.926696</td>
+      <td>0.939567</td>
+      <td>0.945371</td>
+      <td>Random Forest</td>
+      <td>{'model__max_depth': None, 'model__min_samples...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>0.817978</td>
+      <td>0.825821</td>
+      <td>0.853220</td>
+      <td>0.834298</td>
+      <td>0.899324</td>
+      <td>0.914257</td>
+      <td>0.916402</td>
+      <td>0.924859</td>
+      <td>Gradient Boosting</td>
+      <td>{'model__learning_rate': 0.05, 'model__max_dep...</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.844317</td>
+      <td>0.841454</td>
+      <td>0.883523</td>
+      <td>0.858772</td>
+      <td>0.895626</td>
+      <td>0.900414</td>
+      <td>0.882456</td>
+      <td>0.894641</td>
+      <td>AdaBoost</td>
+      <td>{'model__learning_rate': 0.5, 'model__n_estima...</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.824699</td>
+      <td>0.833622</td>
+      <td>0.847348</td>
+      <td>0.837789</td>
+      <td>0.888238</td>
+      <td>0.898086</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>XGBoost</td>
+      <td>{'model__colsample_bytree': 0.8, 'model__learn...</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+               Model  Accuracy (Before)  Precision (Before)  Recall (Before)  \
+0      Random Forest           0.824699            0.838471         0.847727   
+1  Gradient Boosting           0.795027            0.796555         0.835417   
+2           AdaBoost           0.818033            0.815263         0.859280   
+3            XGBoost           0.808251            0.818764         0.835417   
+
+   F1 Score (Before)  AUC (Before)  PR AUC (Before)  Accuracy (After)  \
+0           0.838417      0.906110         0.911587          0.837814   
+1           0.812677      0.881763         0.897038          0.817978   
+2           0.832691      0.886073         0.888571          0.844317   
+3           0.823759      0.871667         0.880383          0.824699   
+
+   Precision (After)  Recall (After)  F1 Score (After)  AUC (After)  \
+0           0.844595        0.865909          0.851863     0.914220   
+1           0.825821        0.853220          0.834298     0.899324   
+2           0.841454        0.883523          0.858772     0.895626   
+3           0.833622        0.847348          0.837789     0.888238   
+
+   PR AUC (After)  
+0        0.926696  
+1        0.914257  
+2        0.900414  
+3        0.898086  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Model</th>
+      <th>Accuracy (Before)</th>
+      <th>Precision (Before)</th>
+      <th>Recall (Before)</th>
+      <th>F1 Score (Before)</th>
+      <th>AUC (Before)</th>
+      <th>PR AUC (Before)</th>
+      <th>Accuracy (After)</th>
+      <th>Precision (After)</th>
+      <th>Recall (After)</th>
+      <th>F1 Score (After)</th>
+      <th>AUC (After)</th>
+      <th>PR AUC (After)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Random Forest</td>
+      <td>0.824699</td>
+      <td>0.838471</td>
+      <td>0.847727</td>
+      <td>0.838417</td>
+      <td>0.906110</td>
+      <td>0.911587</td>
+      <td>0.837814</td>
+      <td>0.844595</td>
+      <td>0.865909</td>
+      <td>0.851863</td>
+      <td>0.914220</td>
+      <td>0.926696</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Gradient Boosting</td>
+      <td>0.795027</td>
+      <td>0.796555</td>
+      <td>0.835417</td>
+      <td>0.812677</td>
+      <td>0.881763</td>
+      <td>0.897038</td>
+      <td>0.817978</td>
+      <td>0.825821</td>
+      <td>0.853220</td>
+      <td>0.834298</td>
+      <td>0.899324</td>
+      <td>0.914257</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>AdaBoost</td>
+      <td>0.818033</td>
+      <td>0.815263</td>
+      <td>0.859280</td>
+      <td>0.832691</td>
+      <td>0.886073</td>
+      <td>0.888571</td>
+      <td>0.844317</td>
+      <td>0.841454</td>
+      <td>0.883523</td>
+      <td>0.858772</td>
+      <td>0.895626</td>
+      <td>0.900414</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>XGBoost</td>
+      <td>0.808251</td>
+      <td>0.818764</td>
+      <td>0.835417</td>
+      <td>0.823759</td>
+      <td>0.871667</td>
+      <td>0.880383</td>
+      <td>0.824699</td>
+      <td>0.833622</td>
+      <td>0.847348</td>
+      <td>0.837789</td>
+      <td>0.888238</td>
+      <td>0.898086</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+Feature importance: Random Forest
+
+
+----
+
+           Feature  Importance
+28     cat__thal_2    0.107983
+7        cat__cp_0    0.107263
+21       cat__ca_0    0.098536
+4     num__oldpeak    0.089859
+3     num__thalach    0.085009
+29     cat__thal_3    0.080997
+0         num__age    0.057056
+17    cat__exang_1    0.048545
+16    cat__exang_0    0.041240
+2        num__chol    0.040755
+1    num__trestbps    0.039780
+20    cat__slope_2    0.029788
+19    cat__slope_1    0.024644
+9        cat__cp_2    0.021105
+5       cat__sex_0    0.019578
+6       cat__sex_1    0.017061
+22       cat__ca_1    0.016696
+23       cat__ca_2    0.015081
+10       cat__cp_3    0.009466
+13  cat__restecg_0    0.009427
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Feature</th>
+      <th>Importance</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>28</th>
+      <td>cat__thal_2</td>
+      <td>0.107983</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>cat__cp_0</td>
+      <td>0.107263</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>cat__ca_0</td>
+      <td>0.098536</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>num__oldpeak</td>
+      <td>0.089859</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>num__thalach</td>
+      <td>0.085009</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td>cat__thal_3</td>
+      <td>0.080997</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>num__age</td>
+      <td>0.057056</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>cat__exang_1</td>
+      <td>0.048545</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>cat__exang_0</td>
+      <td>0.041240</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>num__chol</td>
+      <td>0.040755</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>num__trestbps</td>
+      <td>0.039780</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>cat__slope_2</td>
+      <td>0.029788</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>cat__slope_1</td>
+      <td>0.024644</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>cat__cp_2</td>
+      <td>0.021105</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>cat__sex_0</td>
+      <td>0.019578</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>cat__sex_1</td>
+      <td>0.017061</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>cat__ca_1</td>
+      <td>0.016696</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>cat__ca_2</td>
+      <td>0.015081</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>cat__cp_3</td>
+      <td>0.009466</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>cat__restecg_0</td>
+      <td>0.009427</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+<Figure size 960x720 with 1 Axes>
+
+----
+
+Feature importance: Gradient Boosting
+
+
+----
+
+           Feature  Importance
+7        cat__cp_0    0.245859
+28     cat__thal_2    0.237347
+21       cat__ca_0    0.179978
+4     num__oldpeak    0.091488
+0         num__age    0.043375
+19    cat__slope_1    0.026017
+29     cat__thal_3    0.024016
+3     num__thalach    0.021853
+17    cat__exang_1    0.018917
+2        num__chol    0.017899
+20    cat__slope_2    0.017255
+1    num__trestbps    0.017048
+5       cat__sex_0    0.016736
+16    cat__exang_0    0.013943
+14  cat__restecg_1    0.011631
+6       cat__sex_1    0.010104
+9        cat__cp_2    0.002841
+24       cat__ca_3    0.002545
+27     cat__thal_1    0.000657
+25       cat__ca_4    0.000491
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Feature</th>
+      <th>Importance</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>7</th>
+      <td>cat__cp_0</td>
+      <td>0.245859</td>
+    </tr>
+    <tr>
+      <th>28</th>
+      <td>cat__thal_2</td>
+      <td>0.237347</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>cat__ca_0</td>
+      <td>0.179978</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>num__oldpeak</td>
+      <td>0.091488</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>num__age</td>
+      <td>0.043375</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>cat__slope_1</td>
+      <td>0.026017</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td>cat__thal_3</td>
+      <td>0.024016</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>num__thalach</td>
+      <td>0.021853</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>cat__exang_1</td>
+      <td>0.018917</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>num__chol</td>
+      <td>0.017899</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>cat__slope_2</td>
+      <td>0.017255</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>num__trestbps</td>
+      <td>0.017048</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>cat__sex_0</td>
+      <td>0.016736</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>cat__exang_0</td>
+      <td>0.013943</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>cat__restecg_1</td>
+      <td>0.011631</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>cat__sex_1</td>
+      <td>0.010104</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>cat__cp_2</td>
+      <td>0.002841</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td>cat__ca_3</td>
+      <td>0.002545</td>
+    </tr>
+    <tr>
+      <th>27</th>
+      <td>cat__thal_1</td>
+      <td>0.000657</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>cat__ca_4</td>
+      <td>0.000491</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+<Figure size 960x720 with 1 Axes>
+
+----
+
+Feature importance: AdaBoost
+
+
+----
+
+           Feature  Importance
+4     num__oldpeak    0.192777
+21       cat__ca_0    0.118188
+3     num__thalach    0.105071
+7        cat__cp_0    0.099145
+28     cat__thal_2    0.080388
+1    num__trestbps    0.077375
+2        num__chol    0.068561
+5       cat__sex_0    0.058952
+17    cat__exang_1    0.039894
+0         num__age    0.037102
+20    cat__slope_2    0.034990
+14  cat__restecg_1    0.019586
+29     cat__thal_3    0.019554
+23       cat__ca_2    0.017797
+19    cat__slope_1    0.016009
+6       cat__sex_1    0.014612
+13  cat__restecg_0    0.000000
+12      cat__fbs_1    0.000000
+9        cat__cp_2    0.000000
+8        cat__cp_1    0.000000
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Feature</th>
+      <th>Importance</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>4</th>
+      <td>num__oldpeak</td>
+      <td>0.192777</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>cat__ca_0</td>
+      <td>0.118188</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>num__thalach</td>
+      <td>0.105071</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>cat__cp_0</td>
+      <td>0.099145</td>
+    </tr>
+    <tr>
+      <th>28</th>
+      <td>cat__thal_2</td>
+      <td>0.080388</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>num__trestbps</td>
+      <td>0.077375</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>num__chol</td>
+      <td>0.068561</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>cat__sex_0</td>
+      <td>0.058952</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>cat__exang_1</td>
+      <td>0.039894</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>num__age</td>
+      <td>0.037102</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>cat__slope_2</td>
+      <td>0.034990</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>cat__restecg_1</td>
+      <td>0.019586</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td>cat__thal_3</td>
+      <td>0.019554</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>cat__ca_2</td>
+      <td>0.017797</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>cat__slope_1</td>
+      <td>0.016009</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>cat__sex_1</td>
+      <td>0.014612</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>cat__restecg_0</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>cat__fbs_1</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>cat__cp_2</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>cat__cp_1</td>
+      <td>0.000000</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+<Figure size 960x720 with 1 Axes>
+
+----
+
+Feature importance: XGBoost
+
+
+----
+
+           Feature  Importance
+28     cat__thal_2    0.151127
+7        cat__cp_0    0.105070
+21       cat__ca_0    0.076407
+24       cat__ca_3    0.071953
+29     cat__thal_3    0.053845
+27     cat__thal_1    0.042852
+16    cat__exang_0    0.040957
+20    cat__slope_2    0.038357
+19    cat__slope_1    0.034682
+5       cat__sex_0    0.031696
+6       cat__sex_1    0.030837
+23       cat__ca_2    0.029201
+4     num__oldpeak    0.028561
+22       cat__ca_1    0.026412
+17    cat__exang_1    0.025847
+10       cat__cp_3    0.023832
+9        cat__cp_2    0.023424
+18    cat__slope_0    0.020150
+0         num__age    0.019850
+14  cat__restecg_1    0.019808
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Feature</th>
+      <th>Importance</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>28</th>
+      <td>cat__thal_2</td>
+      <td>0.151127</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>cat__cp_0</td>
+      <td>0.105070</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>cat__ca_0</td>
+      <td>0.076407</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td>cat__ca_3</td>
+      <td>0.071953</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td>cat__thal_3</td>
+      <td>0.053845</td>
+    </tr>
+    <tr>
+      <th>27</th>
+      <td>cat__thal_1</td>
+      <td>0.042852</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>cat__exang_0</td>
+      <td>0.040957</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>cat__slope_2</td>
+      <td>0.038357</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>cat__slope_1</td>
+      <td>0.034682</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>cat__sex_0</td>
+      <td>0.031696</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>cat__sex_1</td>
+      <td>0.030837</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>cat__ca_2</td>
+      <td>0.029201</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>num__oldpeak</td>
+      <td>0.028561</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>cat__ca_1</td>
+      <td>0.026412</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>cat__exang_1</td>
+      <td>0.025847</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>cat__cp_3</td>
+      <td>0.023832</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>cat__cp_2</td>
+      <td>0.023424</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>cat__slope_0</td>
+      <td>0.020150</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>num__age</td>
+      <td>0.019850</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>cat__restecg_1</td>
+      <td>0.019808</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+<Figure size 960x720 with 1 Axes>
+
+----
+
+Top SHAP drivers: Random Forest
+
+
+----
+
+         Feature  Mean |SHAP|
+0       num__age     0.019589
+1  num__trestbps     0.019589
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Feature</th>
+      <th>Mean |SHAP|</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>num__age</td>
+      <td>0.019589</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>num__trestbps</td>
+      <td>0.019589</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+SHAP summary: Random Forest
+
+
+----
+
+<Figure size 1380x792 with 2 Axes>
+
+----
+
+<Figure size 1380x792 with 2 Axes>
+
+----
+
+Top SHAP drivers: Gradient Boosting
+
+
+----
+
+        Feature  Mean |SHAP|
+0     cat__ca_0     0.734937
+1     cat__cp_0     0.637549
+2   cat__thal_2     0.426812
+3  num__oldpeak     0.312998
+4   cat__thal_3     0.188121
+5  cat__slope_1     0.155128
+6     num__chol     0.133246
+7  num__thalach     0.122271
+8    cat__sex_0     0.118160
+9  cat__exang_1     0.116552
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Feature</th>
+      <th>Mean |SHAP|</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>cat__ca_0</td>
+      <td>0.734937</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>cat__cp_0</td>
+      <td>0.637549</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>cat__thal_2</td>
+      <td>0.426812</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>num__oldpeak</td>
+      <td>0.312998</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>cat__thal_3</td>
+      <td>0.188121</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>cat__slope_1</td>
+      <td>0.155128</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>num__chol</td>
+      <td>0.133246</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>num__thalach</td>
+      <td>0.122271</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>cat__sex_0</td>
+      <td>0.118160</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>cat__exang_1</td>
+      <td>0.116552</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+SHAP summary: Gradient Boosting
+
+
+----
+
+<Figure size 960x1140 with 2 Axes>
+
+----
+
+<Figure size 960x1140 with 1 Axes>
+
+----
+
+Skipping SHAP for AdaBoost: TreeExplainer not supported for this model.
+Top SHAP drivers: XGBoost
+
+
+----
+
+        Feature  Mean |SHAP|
+0     cat__ca_0     1.137401
+1     cat__cp_0     0.998272
+2  num__oldpeak     0.624735
+3   cat__thal_2     0.598811
+4    cat__sex_0     0.566328
+5      num__age     0.554577
+6     num__chol     0.447317
+7   cat__thal_3     0.431440
+8  num__thalach     0.409470
+9  cat__slope_1     0.394962
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Feature</th>
+      <th>Mean |SHAP|</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>cat__ca_0</td>
+      <td>1.137401</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>cat__cp_0</td>
+      <td>0.998272</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>num__oldpeak</td>
+      <td>0.624735</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>cat__thal_2</td>
+      <td>0.598811</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>cat__sex_0</td>
+      <td>0.566328</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>num__age</td>
+      <td>0.554577</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>num__chol</td>
+      <td>0.447317</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>cat__thal_3</td>
+      <td>0.431440</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>num__thalach</td>
+      <td>0.409470</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>cat__slope_1</td>
+      <td>0.394962</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+SHAP summary: XGBoost
+
+
+----
+
+<Figure size 960x1140 with 2 Axes>
+
+----
+
+<Figure size 960x1140 with 1 Axes>
+
+----
+
+    Accuracy  Precision    Recall  F1 Score       AUC    PR AUC  \
+0   0.857541   0.857077  0.889962  0.870709  0.917406  0.922947   
+9   0.857541   0.857077  0.889962  0.870709  0.917406  0.922947   
+15  0.844317   0.841454  0.883523  0.858772  0.895626  0.900414   
+11  0.837869   0.823778  0.896212  0.857239  0.899574  0.891452   
+13  0.837814   0.844595  0.865909  0.851863  0.914220  0.926696   
+10  0.831038   0.828106  0.877652  0.849541  0.915071  0.925464   
+1   0.831257   0.828243  0.877652  0.848800  0.908970  0.921266   
+2   0.821475   0.826943  0.853788  0.838489  0.886447  0.862311   
+5   0.824699   0.838471  0.847727  0.838417  0.906110  0.911587   
+16  0.824699   0.833622  0.847348  0.837789  0.888238  0.898086   
+14  0.817978   0.825821  0.853220  0.834298  0.899324  0.914257   
+7   0.818033   0.815263  0.859280  0.832691  0.886073  0.888571   
+8   0.808251   0.818764  0.835417  0.823759  0.871667  0.880383   
+12  0.801257   0.814579  0.829167  0.817426  0.850877  0.815566   
+6   0.795027   0.796555  0.835417  0.812677  0.881763  0.897038   
+3   0.728525   0.748631  0.756250  0.749617  0.726405  0.698525   
+4   0.543060   0.543060  1.000000  0.703852  0.500000  0.543060   
+
+    Train Accuracy  Train F1                  Model  \
+0         0.876650  0.889236    Logistic Regression   
+9         0.876650  0.889236    Logistic Regression   
+15        0.882456  0.894641               AdaBoost   
+11        0.855146  0.871467                    KNN   
+13        0.939567  0.945371          Random Forest   
+10        0.875817  0.888687              SVM (RBF)   
+1         0.927160  0.934307              SVM (RBF)   
+2         0.879150  0.890694                    KNN   
+5         1.000000  1.000000          Random Forest   
+16        1.000000  1.000000                XGBoost   
+14        0.916402  0.924859      Gradient Boosting   
+7         0.898183  0.906799               AdaBoost   
+8         1.000000  1.000000                XGBoost   
+12        0.855969  0.869553          Decision Tree   
+6         0.997517  0.997724      Gradient Boosting   
+3         1.000000  1.000000          Decision Tree   
+4         0.543047  0.703862  Dummy (Most Frequent)   
+
+                                          Best Params  
+0                                                 NaN  
+9           {'model__C': 1, 'model__solver': 'lbfgs'}  
+15  {'model__learning_rate': 0.5, 'model__n_estima...  
+11  {'model__n_neighbors': 11, 'model__weights': '...  
+13  {'model__max_depth': None, 'model__min_samples...  
+10            {'model__C': 1, 'model__gamma': 'auto'}  
+1                                                 NaN  
+2                                                 NaN  
+5                                                 NaN  
+16  {'model__colsample_bytree': 0.8, 'model__learn...  
+14  {'model__learning_rate': 0.05, 'model__max_dep...  
+7                                                 NaN  
+8                                                 NaN  
+12  {'model__criterion': 'gini', 'model__max_depth...  
+6                                                 NaN  
+3                                                 NaN  
+4                                                 NaN  
+
+----
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Accuracy</th>
+      <th>Precision</th>
+      <th>Recall</th>
+      <th>F1 Score</th>
+      <th>AUC</th>
+      <th>PR AUC</th>
+      <th>Train Accuracy</th>
+      <th>Train F1</th>
+      <th>Model</th>
+      <th>Best Params</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.857541</td>
+      <td>0.857077</td>
+      <td>0.889962</td>
+      <td>0.870709</td>
+      <td>0.917406</td>
+      <td>0.922947</td>
+      <td>0.876650</td>
+      <td>0.889236</td>
+      <td>Logistic Regression</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>0.857541</td>
+      <td>0.857077</td>
+      <td>0.889962</td>
+      <td>0.870709</td>
+      <td>0.917406</td>
+      <td>0.922947</td>
+      <td>0.876650</td>
+      <td>0.889236</td>
+      <td>Logistic Regression</td>
+      <td>{'model__C': 1, 'model__solver': 'lbfgs'}</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>0.844317</td>
+      <td>0.841454</td>
+      <td>0.883523</td>
+      <td>0.858772</td>
+      <td>0.895626</td>
+      <td>0.900414</td>
+      <td>0.882456</td>
+      <td>0.894641</td>
+      <td>AdaBoost</td>
+      <td>{'model__learning_rate': 0.5, 'model__n_estima...</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0.837869</td>
+      <td>0.823778</td>
+      <td>0.896212</td>
+      <td>0.857239</td>
+      <td>0.899574</td>
+      <td>0.891452</td>
+      <td>0.855146</td>
+      <td>0.871467</td>
+      <td>KNN</td>
+      <td>{'model__n_neighbors': 11, 'model__weights': '...</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>0.837814</td>
+      <td>0.844595</td>
+      <td>0.865909</td>
+      <td>0.851863</td>
+      <td>0.914220</td>
+      <td>0.926696</td>
+      <td>0.939567</td>
+      <td>0.945371</td>
+      <td>Random Forest</td>
+      <td>{'model__max_depth': None, 'model__min_samples...</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0.831038</td>
+      <td>0.828106</td>
+      <td>0.877652</td>
+      <td>0.849541</td>
+      <td>0.915071</td>
+      <td>0.925464</td>
+      <td>0.875817</td>
+      <td>0.888687</td>
+      <td>SVM (RBF)</td>
+      <td>{'model__C': 1, 'model__gamma': 'auto'}</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>0.831257</td>
+      <td>0.828243</td>
+      <td>0.877652</td>
+      <td>0.848800</td>
+      <td>0.908970</td>
+      <td>0.921266</td>
+      <td>0.927160</td>
+      <td>0.934307</td>
+      <td>SVM (RBF)</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.821475</td>
+      <td>0.826943</td>
+      <td>0.853788</td>
+      <td>0.838489</td>
+      <td>0.886447</td>
+      <td>0.862311</td>
+      <td>0.879150</td>
+      <td>0.890694</td>
+      <td>KNN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>0.824699</td>
+      <td>0.838471</td>
+      <td>0.847727</td>
+      <td>0.838417</td>
+      <td>0.906110</td>
+      <td>0.911587</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>Random Forest</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>0.824699</td>
+      <td>0.833622</td>
+      <td>0.847348</td>
+      <td>0.837789</td>
+      <td>0.888238</td>
+      <td>0.898086</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>XGBoost</td>
+      <td>{'model__colsample_bytree': 0.8, 'model__learn...</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>0.817978</td>
+      <td>0.825821</td>
+      <td>0.853220</td>
+      <td>0.834298</td>
+      <td>0.899324</td>
+      <td>0.914257</td>
+      <td>0.916402</td>
+      <td>0.924859</td>
+      <td>Gradient Boosting</td>
+      <td>{'model__learning_rate': 0.05, 'model__max_dep...</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>0.818033</td>
+      <td>0.815263</td>
+      <td>0.859280</td>
+      <td>0.832691</td>
+      <td>0.886073</td>
+      <td>0.888571</td>
+      <td>0.898183</td>
+      <td>0.906799</td>
+      <td>AdaBoost</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>0.808251</td>
+      <td>0.818764</td>
+      <td>0.835417</td>
+      <td>0.823759</td>
+      <td>0.871667</td>
+      <td>0.880383</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>XGBoost</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0.801257</td>
+      <td>0.814579</td>
+      <td>0.829167</td>
+      <td>0.817426</td>
+      <td>0.850877</td>
+      <td>0.815566</td>
+      <td>0.855969</td>
+      <td>0.869553</td>
+      <td>Decision Tree</td>
+      <td>{'model__criterion': 'gini', 'model__max_depth...</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>0.795027</td>
+      <td>0.796555</td>
+      <td>0.835417</td>
+      <td>0.812677</td>
+      <td>0.881763</td>
+      <td>0.897038</td>
+      <td>0.997517</td>
+      <td>0.997724</td>
+      <td>Gradient Boosting</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.728525</td>
+      <td>0.748631</td>
+      <td>0.756250</td>
+      <td>0.749617</td>
+      <td>0.726405</td>
+      <td>0.698525</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>Decision Tree</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.543060</td>
+      <td>0.543060</td>
+      <td>1.000000</td>
+      <td>0.703852</td>
+      <td>0.500000</td>
+      <td>0.543060</td>
+      <td>0.543047</td>
+      <td>0.703862</td>
+      <td>Dummy (Most Frequent)</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+----
+
+{'best': 'Logistic Regression', 'worst': 'Dummy (Most Frequent)', 'notes': ['Best vs worst gap is 0.167 on F1 Score.', 'Worst model may be underfitting (train and test F1 both low).']}

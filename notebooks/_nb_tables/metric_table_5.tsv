@@ -1,0 +1,2 @@
+	Accuracy	Precision	Recall	F1 Score	AUC	PR AUC	Train Accuracy	Train F1	Model
+0	0.795027	0.796555	0.835417	0.812677	0.881763	0.897038	0.997517	0.997724	Gradient Boosting

@@ -1,0 +1,2 @@
+	Accuracy	Precision	Recall	F1 Score	AUC	PR AUC	Train Accuracy	Train F1	Model
+0	0.824699	0.838471	0.847727	0.838417	0.90611	0.911587	1.0	1.0	Random Forest

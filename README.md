@@ -1,106 +1,118 @@
-# Heart Disease Analysis & Pre-processing Dashboard
+# Heart Disease Prediction & Analysis Dashboard
 
-This project is an interactive web application built with Streamlit for Exploratory Data Analysis (EDA) and pre-processing of the Heart Disease dataset. It allows users to visualize data, apply filters, and prepare the dataset for machine learning modeling without writing any code.
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.28%2B-red)
+![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-1.3%2B-orange)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## Features
+A professional, end-to-end machine learning application designed to predict the likelihood of heart disease based on clinical parameters. This dashboard facilitates Exploratory Data Analysis (EDA), interactive data preprocessing, model training, hyperparameter tuning, and comprehensive performance comparison.
+
+## 🚀 Features
 
 ### 1. Exploratory Data Analysis (EDA)
 
-- **Data Overview:** View raw data, summary metrics (total records, features), and data types.
-- **Statistical Summary:** Analyze descriptive statistics and visualize the distribution of the target variable (Heart Disease vs. No Disease).
+- **Data Overview:** View raw data statistics, feature types, and missing value analysis.
 - **Interactive Visualizations:**
-  - **Distributions:** Analyze feature distributions with histograms and box plots, segmented by the target variable.
-  - **Categorical Analysis:** Explore relationships between categorical features and the target using bar charts.
-  - **Correlations:** Visualize feature correlations with an interactive heatmap and a scatter matrix.
+  - Distribution plots (histograms, box plots) for numerical features.
+  - Bar charts for categorical feature analysis.
+  - Correlation heatmaps to identify relationships between variables.
+- **Automated Reporting:** Generate and download EDA reports in **PDF**, **HTML**, and **Text** formats.
 
-### 2. Data Pre-processing Pipeline
+### 2. Advanced Preprocessing Pipeline
 
-A dedicated tab to prepare the data for machine learning models, including:
+Configure your ML pipeline dynamically via the UI:
 
-- **Outlier Handling:** Clip outliers from numerical columns using the IQR (Interquartile Range) method.
-- **Categorical Encoding:** Convert categorical variables to a numerical format using One-Hot Encoding.
-- **Feature Scaling:** Scale numerical features to a standard range using either `StandardScaler` or `MinMaxScaler`.
+- **Missing Value Handling:** Options to impute (median/mode) or drop rows.
+- **Outlier Detection:** IQR-based clipping to handle extreme values.
+- **Feature Scaling:** StandardScaler or MinMaxScaler options.
+- **Categorical Encoding:** One-Hot Encoding for categorical variables.
+- **Feature Selection:** SelectKBest using mutual information to identify top predictors.
 
-### 3. Comparison Analysis
+### 3. Machine Learning Modeling
 
-- **Before & After View:** A dedicated tab to visually and statistically compare the dataset before and after pre-processing steps. This helps in understanding the impact of outlier handling and scaling on data distribution.
+Train and compare a wide range of algorithms:
 
-### 4. Interactive Filtering & Download
+- **Baselines:** Logistic Regression, SVM, KNN, Decision Tree, Dummy Classifier.
+- **Ensemble Methods:** Random Forest, Gradient Boosting, AdaBoost, XGBoost (if available).
+- **Hyperparameter Tuning:** Optimize models using GridSearchCV or RandomizedSearchCV directly from the interface.
 
-- **Dynamic Filtering:** Filter the entire dataset by Age, Sex, and Chest Pain Type via a sidebar menu. All charts and statistics update instantly.
-- **Download Processed Data:** Download the cleaned and pre-processed data as a CSV file, ready for model training.
+### 4. Explainability & Interpretation
 
-## Machine Learning Context
+- **Feature Importance:** Visualize which features contribute most to model predictions.
+- **SHAP Analysis:** (Optional) Leverage SHAP (SHapley Additive exPlanations) values to understand individual predictions and global model behavior.
 
-The primary output of this dashboard is a clean, pre-processed dataset ready for the application of supervised machine learning models. The goal is to build a **binary classification model** that can predict the presence of heart disease (the 'target' variable) based on the provided patient attributes.
+## 📂 Project Structure
 
-### Applicable Models
+The project follows a modular architecture for scalability and maintainability:
 
-The processed data is suitable for a variety of classification algorithms, including:
-
-- **Logistic Regression**
-- **Support Vector Machines (SVM)**
-- **Decision Trees and Random Forests**
-- **Gradient Boosting Machines (e.g., XGBoost, LightGBM)**
-- **K-Nearest Neighbors (KNN)**
-
-This application serves as the foundational first step, ensuring that the data fed into these models is of the highest possible quality, thereby maximizing the potential for accurate and reliable predictions.
-
-## Setup & Installation
-
-### Prerequisites
-
-- Python 3.8+
-- A virtual environment tool (e.g., `venv`)
-
-### 1. Clone the Repository
-
-```bash
-git clone <your-repository-link>
-cd <your-repository-directory>
+```
+├── app.py                  # Main entry point for the Streamlit application
+├── data/
+│   ├── raw/                # Original dataset (heart.csv)
+│   └── results/            # Exported model results and metrics
+├── src/                    # Source code modules
+│   ├── utils.py            # Data loading and basic cleaning utilities
+│   ├── visualization.py    # Plotting and figure generation functions
+│   ├── modeling.py         # ML pipelines, training, and evaluation logic
+│   └── reporting.py        # PDF/HTML report generation logic
+├── notebooks/              # Jupyter notebooks for experimentation
+├── docs/                   # Project documentation, reports, and presentations
+├── assets/                 # Images and static assets for reports
+├── requirements.txt        # Python dependencies
+└── README.md               # Project documentation
 ```
 
-### 2. Create and Activate a Virtual Environment
+## 🛠️ Installation
 
-**Windows:**
+1. **Clone the repository:**
 
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-```
+   ```bash
+   git clone https://github.com/yourusername/heart-disease-ml.git
+   cd heart-disease-ml
+   ```
 
-**macOS / Linux:**
+2. **Create a virtual environment (recommended):**
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
+   ```bash
+   # Windows
+   python -m venv .venv
+   .venv\Scripts\activate
 
-### 3. Install Dependencies
+   # macOS/Linux
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
 
-All required libraries are listed in `requirements.txt`. Install them using pip:
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```bash
-pip install -r requirements.txt
-```
+## ▶️ Usage
 
-## Running the Application
-
-To start the Streamlit server, run the following command in your terminal:
+To launch the dashboard, run the following command from the project root:
 
 ```bash
 streamlit run app.py
 ```
 
-The application will open automatically in your web browser at `http://localhost:8501`.
+The application will automatically open in your default web browser at `http://localhost:8501`.
 
-## Project Structure
+## 📊 Methodology
 
-```
-.
-.venv/                  # Virtual environment directory
-app.py                  # Main Streamlit application file
-heart.csv               # The dataset
-requirements.txt        # Python dependencies
-README.md               # This file
-```
+The pipeline follows these steps:
+
+1. **Data Ingestion:** Loads the dataset from `data/raw/heart.csv`.
+2. **Preprocessing:** Applies user-defined transformations (Imputation -> Outlier Clipping -> Scaling -> Encoding).
+3. **Training:** Fits selected models using Stratified K-Fold Cross-Validation.
+4. **Evaluation:** Computes metrics like Accuracy, Precision, Recall, F1-Score, and ROC-AUC.
+5. **Tuning:** Performs hyperparameter search to optimize model performance.
+6. **Comparison:** Visualizes performance differences to help select the best model.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

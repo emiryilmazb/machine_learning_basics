@@ -1,0 +1,2 @@
+	Accuracy	Precision	Recall	F1 Score	AUC	PR AUC	Train Accuracy	Train F1	Model
+0	0.821475	0.826943	0.853788	0.838489	0.886447	0.862311	0.87915	0.890694	KNN
